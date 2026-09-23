@@ -1,0 +1,18 @@
+# Loyiha saytning asosiy papkasiga (public_html) joylanganda ishlatiladi:
+# sayt https://domen/public/... manzilida ishlaydi, maxfiy fayllar (.env, vendor, database...) yopiladi.
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Bosh sahifa -> public/
+    RewriteRule ^$ public/ [L]
+
+    # public/ dan tashqaridagi hamma narsaga kirish taqiqlanadi
+    RewriteRule ^(?!public/) - [F,L]
+</IfModule>
+
+# Rewrite ishlamagan taqdirda ham maxfiy fayllarni himoyalash
+<FilesMatch "^(\.env.*|composer\.(json|lock)|package(-lock)?\.json|artisan|.*\.sql|.*\.md)$">
+    Require all denied
+</FilesMatch>

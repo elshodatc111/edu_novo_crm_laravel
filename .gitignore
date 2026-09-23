@@ -1,0 +1,14 @@
+/vendor
+/node_modules
+/public/build
+/public/storage
+/storage/*.key
+/storage/app/*
+!/storage/app/.gitkeep
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/logs/*
+.env
+*.sqlite
+.phpunit.result.cache

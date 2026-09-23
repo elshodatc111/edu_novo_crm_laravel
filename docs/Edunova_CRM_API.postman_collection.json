@@ -1,0 +1,2016 @@
+{
+  "info": {
+    "name": "Edunova CRM - API v1 (v12)",
+    "description": "Mobil ilova uchun to'liq API (o'quvchi, o'qituvchi va xodimlar). Avval 'Kirish (login)' so'rovini yuboring, token avtomatik {{token}}ga saqlanadi. sAdmin bilan sinaganda, kerakli so'rovlarda o'chirilgan 'X-Branch-Id' sarlavhasini yoqib, {{branch_id}} qiymatini o'rnating.\n\nBarcha javoblar: {success, message?, data?, errors?}. Xatolar: 401 (token yo'q), 403 (ruxsat yo'q), 404 (topilmadi/boshqa filial), 422 (tekshiruv/filial ko'rsatilmagan), 429 (juda ko'p so'rov).\n\nTo'liq, har doim eng oxirgi holatga mos hujjat: loyihadagi API_DOC.md fayli, yoki serverga kirgan holda '/docs' sahifasi (login talab qilmaydi, onlayn ko'rinadi).\n\nv12 yangiliklari: ilova versiyasi tekshiruvi (bo'lim 1), parolni SMS kod bilan tiklash va profilni tahrirlash - telefon/rasm (bo'lim 2), bildirishnoma 'deep link' (bo'lim 3), hodim qo'shishda filial endi X-Branch-Id orqali (bo'lim 6).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.request.headers.upsert({key:'Accept', value:'application/json'});"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000/api/v1"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "branch_id",
+      "value": "1",
+      "description": "sAdmin bilan sinaganda X-Branch-Id sarlavhasi uchun"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Ilova versiyasi (v12)",
+      "item": [
+        {
+          "name": "GET /app/version",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/app/version?platform=android&version=1.0.0",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "app",
+                "version"
+              ],
+              "query": [
+                {
+                  "key": "platform",
+                  "value": "android"
+                },
+                {
+                  "key": "version",
+                  "value": "1.0.0"
+                }
+              ]
+            },
+            "description": "Ilova ochilganda, login qilishdan OLDIN chaqiriladi. Login talab qilmaydi.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [
+            {
+              "name": "200 - yumshoq taklif bor",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"force_update\": false,\n    \"update_available\": true,\n    \"min_version\": \"1.0.0\",\n    \"latest_version\": \"1.5.0\",\n    \"message\": \"Yangi funksiyalar qo'shildi.\",\n    \"update_url\": \"https://play.google.com/store/apps/details?id=...\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Kirish, parolni tiklash va profil",
+      "item": [
+        {
+          "name": "POST /auth/login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Login (username yoki email) va parol bilan kirish. Barcha rollar uchun.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"admin\",\n  \"password\": \"demo12345\",\n  \"device_name\": \"telefon\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var j=pm.response.json();",
+                  "if(pm.response.code===200 && j.data && j.data.token){pm.collectionVariables.set('token', j.data.token);}"
+                ]
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "200 - Muvaffaqiyatli",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Tizimga muvaffaqiyatli kirdingiz.\",\n  \"data\": {\n    \"token\": \"1|xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\",\n    \"token_type\": \"Bearer\",\n    \"user\": {\n      \"id\": 2,\n      \"name\": \"Demo Admin\",\n      \"username\": \"admin\",\n      \"email\": null,\n      \"phone\": \"+998901234567\",\n      \"photo_url\": null,\n      \"role\": \"admin\",\n      \"role_label\": \"Admin\",\n      \"branch\": {\n        \"id\": 1,\n        \"name\": \"Markaziy filial\"\n      },\n      \"permissions\": [\n        \"students.view\",\n        \"groups.view\",\n        \"attendance.take\"\n      ],\n      \"created_at\": \"2026-09-20\"\n    }\n  }\n}"
+            },
+            {
+              "name": "422 - Login yoki parol xato",
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Login yoki parol noto'g'ri.\",\n  \"errors\": {\n    \"login\": [\n      \"Login yoki parol noto'g'ri.\"\n    ]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "GET /auth/me",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            },
+            "description": "Joriy foydalanuvchi va ruxsatlar ro'yxati."
+          }
+        },
+        {
+          "name": "POST /auth/change-password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/change-password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "change-password"
+              ]
+            },
+            "description": "Parolni bilgan holda almashtirish. Boshqa qurilmalar chiqib ketadi.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"current_password\": \"eski12345\",\n  \"password\": \"yangi12345\",\n  \"password_confirmation\": \"yangi12345\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "POST /auth/logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Joriy tokenni va shu qurilmaning push-tokenini o'chiradi."
+          }
+        },
+        {
+          "name": "POST /auth/forgot-password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/forgot-password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "forgot-password"
+              ]
+            },
+            "description": "v12: Parolni unutdingizmi - 1-qadam. Login talab qilmaydi. Javob har doim bir xil (hisob mavjudligini oshkor qilmaslik uchun).",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"admin\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "200 - har doim shu javob",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Agar bunday hisob mavjud bo'lsa, telefon raqamiga tasdiqlash kodi yuborildi.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST /auth/reset-password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/reset-password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "reset-password"
+              ]
+            },
+            "description": "v12: Parolni unutdingizmi - 2-qadam. SMS orqali kelgan 6 xonali kod + yangi parol. Login talab qilmaydi.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"admin\",\n  \"code\": \"482913\",\n  \"password\": \"yangiParol99\",\n  \"password_confirmation\": \"yangiParol99\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "200 - Muvaffaqiyatli",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Parolingiz muvaffaqiyatli tiklandi. Endi yangi parol bilan tizimga kiring.\"\n}"
+            },
+            {
+              "name": "422 - Kod noto'g'ri/eskirgan",
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Kod noto'g'ri yoki muddati o'tgan.\",\n  \"errors\": {\n    \"code\": [\n      \"Kod noto'g'ri yoki muddati o'tgan.\"\n    ]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "GET /me/profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/me/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me",
+                "profile"
+              ]
+            },
+            "description": "Hamma rol uchun qisqa profil (v12: photo_url bilan)."
+          }
+        },
+        {
+          "name": "GET /branches",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/branches",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "branches"
+              ]
+            },
+            "description": "Filial tanlagich uchun ro'yxat (sAdmin/staff.view_all_branches)."
+          }
+        },
+        {
+          "name": "POST /me/profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/me/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me",
+                "profile"
+              ]
+            },
+            "description": "v12: profilni tahrirlash (telefon va/yoki rasm). multipart/form-data. Barcha maydonlar ixtiyoriy.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "phone",
+                  "type": "text",
+                  "value": "+998 90 765 4321",
+                  "description": "Qat'iy +998 90 123 4567 ko'rinishida"
+                },
+                {
+                  "key": "photo",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true,
+                  "description": "jpg/jpeg/png/webp, maksimum 4 MB"
+                },
+                {
+                  "key": "remove_photo",
+                  "type": "text",
+                  "value": "1",
+                  "disabled": true,
+                  "description": "Mavjud rasmni o'chirish uchun 1 yuboring"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "200 - Muvaffaqiyatli",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Profil yangilandi.\",\n  \"data\": {\n    \"id\": 12,\n    \"name\": \"Nodira\",\n    \"role\": \"student\",\n    \"role_label\": \"O'quvchi\",\n    \"phone\": \"+998 90 765 4321\",\n    \"phone2\": null,\n    \"photo_url\": \"https://.../storage/profile-photos/12/abc123.jpg\",\n    \"branch\": \"Test filiali\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Push bildirishnoma",
+      "item": [
+        {
+          "name": "POST /me/device-token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/me/device-token",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me",
+                "device-token"
+              ]
+            },
+            "description": "Login qilingandan keyin (yoki FCM tokeni yangilanganda) chaqiriladi.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"fcm-device-token-string\",\n  \"platform\": \"android\",\n  \"device_name\": \"telefon\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "DELETE /me/device-token",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/me/device-token",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me",
+                "device-token"
+              ]
+            },
+            "description": "Shu qurilmaga push kelishini to'xtatadi. Body ixtiyoriy.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"device_name\": \"telefon\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "GET /notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/notifications",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications"
+              ]
+            },
+            "description": "DIQQAT: manzil shu - '/me/notifications' EMAS. v12: data.link_type/data.link_id ('deep link') bo'lishi mumkin."
+          },
+          "response": [
+            {
+              "name": "200 - Ro'yxat (deep link bilan)",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": 7,\n      \"title\": \"Guruh eslatmasi\",\n      \"body\": \"Ertaga dars bor.\",\n      \"data\": {\n        \"link_type\": \"group\",\n        \"link_id\": 42\n      },\n      \"read\": false,\n      \"created_at\": \"2026-09-20T10:00:00+00:00\"\n    }\n  ],\n  \"meta\": {\n    \"page\": 1,\n    \"last_page\": 1,\n    \"total\": 1,\n    \"unread_count\": 1\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST /notifications/1/read",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/notifications/1/read",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications",
+                "1",
+                "read"
+              ]
+            },
+            "description": "Bitta xabarni o'qilgan deb belgilaydi."
+          }
+        },
+        {
+          "name": "POST /notifications/read-all",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/notifications/read-all",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications",
+                "read-all"
+              ]
+            },
+            "description": "Barcha xabarlarni o'qilgan deb belgilaydi."
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. O'quvchi bo'limi",
+      "item": [
+        {
+          "name": "GET /me/balance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/me/balance",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me",
+                "balance"
+              ]
+            },
+            "description": "Balans, qarz va so'nggi 50 ta harakat."
+          }
+        },
+        {
+          "name": "GET /me/groups",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/me/groups",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me",
+                "groups"
+              ]
+            },
+            "description": "O'quvchining barcha guruhlari (faol va tugagan)."
+          }
+        },
+        {
+          "name": "GET /me/attendance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/me/attendance",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me",
+                "attendance"
+              ]
+            },
+            "description": "Barcha guruhlar bo'yicha umumlashtirilgan davomat."
+          }
+        },
+        {
+          "name": "GET /courses",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/courses",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "courses"
+              ]
+            },
+            "description": "O'quvchining o'z guruhi kursi materiallari ro'yxati."
+          }
+        },
+        {
+          "name": "GET /courses/1/videos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/courses/1/videos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "courses",
+                "1",
+                "videos"
+              ]
+            },
+            "description": "Kurs videolari."
+          }
+        },
+        {
+          "name": "GET /courses/1/audios",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/courses/1/audios",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "courses",
+                "1",
+                "audios"
+              ]
+            },
+            "description": "Kurs audiolari."
+          }
+        },
+        {
+          "name": "GET /books",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/books",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "books"
+              ]
+            },
+            "description": "Kitoblar ro'yxati."
+          }
+        },
+        {
+          "name": "POST /courses/1/tests/start",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/courses/1/tests/start",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "courses",
+                "1",
+                "tests",
+                "start"
+              ]
+            },
+            "description": "Test topshirishni boshlash - savollar va aralashtirilgan variantlar qaytadi."
+          }
+        },
+        {
+          "name": "POST /tests/1/submit",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tests/1/submit",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tests",
+                "1",
+                "submit"
+              ]
+            },
+            "description": "Test javoblarini topshirish.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"answers\": [\n    {\n      \"question_id\": 1,\n      \"choice\": 2\n    },\n    {\n      \"question_id\": 2,\n      \"choice\": 0\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "GET /courses/1/tests/results",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/courses/1/tests/results",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "courses",
+                "1",
+                "tests",
+                "results"
+              ]
+            },
+            "description": "So'nggi 20 ta test urinishi."
+          }
+        },
+        {
+          "name": "GET /me/payroll",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/me/payroll",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me",
+                "payroll"
+              ]
+            },
+            "description": "O'qituvchi uchun hisoblangan ish haqi va to'lovlar tarixi (faqat ko'rish)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Guruh va davomad (umumiy)",
+      "item": [
+        {
+          "name": "GET /groups",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/groups?status=current",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "groups"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "current"
+                }
+              ]
+            },
+            "description": "Rolga qarab: o'quvchi/o'qituvchi - o'zinikilar, xodim - filialdagi barchasi."
+          }
+        },
+        {
+          "name": "GET /groups/1",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/groups/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "groups",
+                "1"
+              ]
+            },
+            "description": "Bitta guruh haqida."
+          }
+        },
+        {
+          "name": "GET /groups/1/attendance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/groups/1/attendance",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "groups",
+                "1",
+                "attendance"
+              ]
+            },
+            "description": "Davomat matritsasi (kunlar x o'quvchilar)."
+          }
+        },
+        {
+          "name": "POST /groups/1/attendance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/groups/1/attendance",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "groups",
+                "1",
+                "attendance"
+              ]
+            },
+            "description": "Bugungi davomatni saqlash/tahrirlash.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"present\": [\n    12,\n    15,\n    19\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Xodimlar bo'limi",
+      "item": [
+        {
+          "name": "GET /dashboard/todo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/dashboard/todo",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "dashboard",
+                "todo"
+              ]
+            },
+            "description": "Bugungi qarzdorlar, javobsiz lidlar, guruh statistikasi."
+          }
+        },
+        {
+          "name": "GET /leads",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/leads?status=new",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "leads"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "new"
+                }
+              ]
+            },
+            "description": "Lidlar ro'yxati."
+          }
+        },
+        {
+          "name": "GET /leads/1",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/leads/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "leads",
+                "1"
+              ]
+            },
+            "description": "Bitta lid haqida."
+          }
+        },
+        {
+          "name": "POST /leads",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Branch-Id",
+                "value": "{{branch_id}}",
+                "disabled": true,
+                "description": "Faqat sAdmin uchun. Yoqib, filial ID kiriting (aks holda 422 yoki 'barcha filiallar' rejimi)."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/leads",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "leads"
+              ]
+            },
+            "description": "Yangi lid qo'shish.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Aziz Aliyev\",\n  \"phone\": \"+998901234567\",\n  \"phone2\": null,\n  \"address\": null,\n  \"lead_source_id\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "POST /leads/1/note",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/leads/1/note",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "leads",
+                "1",
+                "note"
+              ]
+            },
+            "description": "Lidga izoh qo'shish.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"Qayta qo'ng'iroq qilindi.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "POST /leads/1/cancel",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/leads/1/cancel",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "leads",
+                "1",
+                "cancel"
+              ]
+            },
+            "description": "Lidni bekor qilish.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Qiziqmadi\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "POST /leads/1/reopen",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/leads/1/reopen",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "leads",
+                "1",
+                "reopen"
+              ]
+            },
+            "description": "Bekor qilingan lidni qayta ochish."
+          }
+        },
+        {
+          "name": "POST /leads/1/convert",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Branch-Id",
+                "value": "{{branch_id}}",
+                "disabled": true,
+                "description": "Faqat sAdmin uchun. Yoqib, filial ID kiriting (aks holda 422 yoki 'barcha filiallar' rejimi)."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/leads/1/convert",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "leads",
+                "1",
+                "convert"
+              ]
+            },
+            "description": "Lidni o'quvchiga aylantirish, ixtiyoriy guruhga qo'shish.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"about\": \"Izoh\",\n  \"group_id\": 4\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "GET /cashbox",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Branch-Id",
+                "value": "{{branch_id}}",
+                "disabled": true,
+                "description": "Faqat sAdmin uchun. Yoqib, filial ID kiriting (aks holda 422 yoki 'barcha filiallar' rejimi)."
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/cashbox",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "cashbox"
+              ]
+            },
+            "description": "Kassa holati."
+          }
+        },
+        {
+          "name": "GET /cashbox/expense-categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Branch-Id",
+                "value": "{{branch_id}}",
+                "disabled": true,
+                "description": "Faqat sAdmin uchun. Yoqib, filial ID kiriting (aks holda 422 yoki 'barcha filiallar' rejimi)."
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/cashbox/expense-categories",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "cashbox",
+                "expense-categories"
+              ]
+            },
+            "description": "Xarajat turkumlari ro'yxati."
+          }
+        },
+        {
+          "name": "POST /cashbox/requests",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Branch-Id",
+                "value": "{{branch_id}}",
+                "disabled": true,
+                "description": "Faqat sAdmin uchun. Yoqib, filial ID kiriting (aks holda 422 yoki 'barcha filiallar' rejimi)."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/cashbox/requests",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "cashbox",
+                "requests"
+              ]
+            },
+            "description": "Kassadan chiqim/xarajat SO'ROVI (darhol yechiladi, tasdiqlash kutiladi).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"kind\": \"withdrawal\",\n  \"method\": \"cash\",\n  \"amount\": 50000,\n  \"description\": \"Ofis xarajati\",\n  \"category_id\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "POST /cashbox/requests/1/approve",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/cashbox/requests/1/approve",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "cashbox",
+                "requests",
+                "1",
+                "approve"
+              ]
+            },
+            "description": "Kassa so'rovini tasdiqlash."
+          }
+        },
+        {
+          "name": "POST /cashbox/requests/1/cancel",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/cashbox/requests/1/cancel",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "cashbox",
+                "requests",
+                "1",
+                "cancel"
+              ]
+            },
+            "description": "Kassa so'rovini bekor qilish (pul qaytadi).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Xato kiritilgan\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "GET /finance/overview",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Branch-Id",
+                "value": "{{branch_id}}",
+                "disabled": true,
+                "description": "Faqat sAdmin uchun. Yoqib, filial ID kiriting (aks holda 422 yoki 'barcha filiallar' rejimi)."
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/finance/overview",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "finance",
+                "overview"
+              ]
+            },
+            "description": "Moliya umumiy ko'rinishi (xazina, ehson)."
+          }
+        },
+        {
+          "name": "POST /finance/deposit",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Branch-Id",
+                "value": "{{branch_id}}",
+                "disabled": true,
+                "description": "Faqat sAdmin uchun. Yoqib, filial ID kiriting (aks holda 422 yoki 'barcha filiallar' rejimi)."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/finance/deposit",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "finance",
+                "deposit"
+              ]
+            },
+            "description": "Shaxsiy mablag' kiritish.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"method\": \"cash\",\n  \"amount\": 100000,\n  \"description\": \"O'z mablag'im\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "GET /staff",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/staff?role=&q=",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "staff"
+              ],
+              "query": [
+                {
+                  "key": "role",
+                  "value": ""
+                },
+                {
+                  "key": "q",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Xodimlar ro'yxati."
+          }
+        },
+        {
+          "name": "GET /staff/1",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/staff/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "staff",
+                "1"
+              ]
+            },
+            "description": "Bitta xodim haqida."
+          }
+        },
+        {
+          "name": "POST /staff",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Branch-Id",
+                "value": "{{branch_id}}",
+                "disabled": true,
+                "description": "Faqat sAdmin uchun. Yoqib, filial ID kiriting (aks holda 422 yoki 'barcha filiallar' rejimi)."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/staff",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "staff"
+              ]
+            },
+            "description": "v12: Yangi xodim qo'shish. sAdmin uchun filial ENDI body'da EMAS - X-Branch-Id sarlavhasidan olinadi.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Yangi Menejer\",\n  \"username\": \"yangi.menejer\",\n  \"phone\": \"+998 91 222 3344\",\n  \"status\": \"active\",\n  \"password\": \"parol12345\",\n  \"password_confirmation\": \"parol12345\",\n  \"role\": \"manager\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PUT /staff/1",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/staff/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "staff",
+                "1"
+              ]
+            },
+            "description": "Xodim ma'lumotini tahrirlash.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Yangi Menejer\",\n  \"username\": \"yangi.menejer\",\n  \"phone\": \"+998 91 222 3344\",\n  \"status\": \"active\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "GET /staff/1/payroll",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/staff/1/payroll",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "staff",
+                "1",
+                "payroll"
+              ]
+            },
+            "description": "Hisoblangan ish haqi va to'lovlar tarixi (faqat ko'rish)."
+          }
+        },
+        {
+          "name": "GET /staff-directory",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/staff-directory",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "staff-directory"
+              ]
+            },
+            "description": "Boshqa filiallar xodimlari (faqat ko'rish)."
+          }
+        },
+        {
+          "name": "GET /staff-directory/1",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/staff-directory/1?students_page=1&groups_page=1&leads_page=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "staff-directory",
+                "1"
+              ],
+              "query": [
+                {
+                  "key": "students_page",
+                  "value": "1"
+                },
+                {
+                  "key": "groups_page",
+                  "value": "1"
+                },
+                {
+                  "key": "leads_page",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Tanlangan filialning o'quvchi/guruh/lid ro'yxati (faqat o'qish)."
+          }
+        },
+        {
+          "name": "POST /groups/1/students",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/groups/1/students",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "groups",
+                "1",
+                "students"
+              ]
+            },
+            "description": "Guruhga o'quvchi biriktirish.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student_id\": 12,\n  \"note\": \"Izoh\",\n  \"allow_debt\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "DELETE /groups/1/students/12",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/groups/1/students/12",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "groups",
+                "1",
+                "students",
+                "12"
+              ]
+            },
+            "description": "O'quvchini guruhdan chiqarish."
+          }
+        },
+        {
+          "name": "GET /sms",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/sms?status=&q=",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sms"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": ""
+                },
+                {
+                  "key": "q",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "SMS tarixi."
+          }
+        },
+        {
+          "name": "POST /sms/bulk-preview",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Branch-Id",
+                "value": "{{branch_id}}",
+                "disabled": true,
+                "description": "Faqat sAdmin uchun. Yoqib, filial ID kiriting (aks holda 422 yoki 'barcha filiallar' rejimi)."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/sms/bulk-preview",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sms",
+                "bulk-preview"
+              ]
+            },
+            "description": "Ommaviy SMS'ni OLDINDAN ko'rish (haqiqiy yuborish mobilda yo'q).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"audience\": \"all\",\n  \"group_id\": null,\n  \"message\": \"Salom {name}, to'lov muddati yaqinlashdi.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "GET /students",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/students?q=ali",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "students"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "ali"
+                }
+              ]
+            },
+            "description": "O'quvchilar ro'yxati (xodim)."
+          }
+        },
+        {
+          "name": "GET /students/5",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/students/5",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "students",
+                "5"
+              ]
+            },
+            "description": "Bitta o'quvchi haqida."
+          }
+        },
+        {
+          "name": "POST /students/5/payments",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/students/5/payments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "students",
+                "5",
+                "payments"
+              ]
+            },
+            "description": "O'quvchidan to'lov qabul qilish.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 300000,\n  \"method\": \"cash\",\n  \"description\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "GET /statistics/overview",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/statistics/overview?from=2026-09-01&to=2026-09-30",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "statistics",
+                "overview"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2026-09-01"
+                },
+                {
+                  "key": "to",
+                  "value": "2026-09-30"
+                }
+              ]
+            },
+            "description": "Statistika (ruxsatga qarab pul/moliya ko'rsatkichlari chiqarib tashlanadi)."
+          }
+        }
+      ]
+    }
+  ]
+}
