@@ -32,88 +32,68 @@
 
     <nav class="flex-1 space-y-1 overflow-y-auto px-3 py-4">
         <x-nav-link :href="route('dashboard')" icon="home" :active="request()->routeIs('dashboard')">Bosh sahifa</x-nav-link>
-
-        @if ($me->isSuperAdmin())
-            <x-nav-link :href="route('branches.index')" icon="building" :active="request()->routeIs('branches.*')">Filiallar</x-nav-link>
-            <x-nav-link :href="route('system-status.index')" icon="cog" :active="request()->routeIs('system-status.*')">Tizim holati</x-nav-link>
-            <x-nav-link :href="route('notifications.index')" icon="bell" :active="request()->routeIs('notifications.*')">Bildirishnomalar</x-nav-link>
-            <x-nav-link :href="route('app-version.edit')" icon="phone" :active="request()->routeIs('app-version.*')">Ilova versiyasi</x-nav-link>
-            <x-nav-link href="{{ route('docs.index') }}" icon="book" target="_blank">API hujjati</x-nav-link>
-        @endif
-
         @can('students.view')
             <x-nav-link :href="route('students.index')" icon="cap" :active="request()->routeIs('students.*')">O'quvchilar</x-nav-link>
         @endcan
-
-        @can('viewAny', \App\Models\Group::class)
-            <x-nav-link :href="route('groups.index')" icon="users" :active="request()->routeIs('groups.*')">{{ $me->role === \App\Enums\Role::Teacher ? 'Guruhlarim' : 'Guruhlar' }}</x-nav-link>
-        @endcan
-
-        @can('leads.view')
-            <x-nav-link :href="route('leads.index')" icon="funnel" :active="request()->routeIs('leads.*')">Varonka</x-nav-link>
-        @endcan
-
-        @can('payments.view')
-            <x-nav-link :href="route('payments.index')" icon="banknote" :active="request()->routeIs('payments.*')">To'lovlar</x-nav-link>
-        @endcan
-
-        @can('cashbox.view')
-            <x-nav-link :href="route('cashbox.index')" icon="wallet" :active="request()->routeIs('cashbox.*')">Kassa</x-nav-link>
-        @endcan
-
-        @can('finance.view')
-            <x-nav-link :href="route('finance.index')" icon="chart" :active="request()->routeIs('finance.*')">Moliya</x-nav-link>
-        @endcan
-
-        @if ($me->can('teachers.view') || $me->can('staff.view'))
-            <x-nav-link :href="route('payroll.index')" icon="briefcase" :active="request()->routeIs('payroll.*')">Ish haqi</x-nav-link>
-        @endif
-
         @can('attendance.view')
             <x-nav-link :href="route('attendance.today')" icon="calendar" :active="request()->routeIs('attendance.today')">Bugungi davomad</x-nav-link>
         @endcan
-
-        @can('statistics.view')
-            <x-nav-link :href="route('statistics.index')" icon="chart" :active="request()->routeIs('statistics.*')">Statistika</x-nav-link>
+        @can('viewAny', \App\Models\Group::class)
+            <x-nav-link :href="route('groups.index')" icon="users" :active="request()->routeIs('groups.*')">{{ $me->role === \App\Enums\Role::Teacher ? 'Guruhlarim' : 'Guruhlar' }}</x-nav-link>
         @endcan
-
-        @can('reports.view')
-            <x-nav-link :href="route('reports.index')" icon="log" :active="request()->routeIs('reports.*')">Hisobotlar</x-nav-link>
-        @endcan
-
         @can('attendance.stats')
             <x-nav-link :href="route('attendance.stats')" icon="chart" :active="request()->routeIs('attendance.stats')">Davomad statistikasi</x-nav-link>
         @endcan
-
+        @can('leads.view')
+            <x-nav-link :href="route('leads.index')" icon="funnel" :active="request()->routeIs('leads.*')">Varonka</x-nav-link>
+        @endcan
+        @can('cashbox.view')
+            <x-nav-link :href="route('cashbox.index')" icon="wallet" :active="request()->routeIs('cashbox.*')">Kassa</x-nav-link>
+        @endcan
+        @can('finance.view')
+            <x-nav-link :href="route('finance.index')" icon="chart" :active="request()->routeIs('finance.*')">Moliya</x-nav-link>
+        @endcan
+        @can('payments.view')
+            <x-nav-link :href="route('payments.index')" icon="banknote" :active="request()->routeIs('payments.*')">To'lovlar</x-nav-link>
+        @endcan
+        @can('statistics.view')
+            <x-nav-link :href="route('statistics.index')" icon="chart" :active="request()->routeIs('statistics.*')">Statistika</x-nav-link>
+        @endcan
+        @can('reports.view')
+            <x-nav-link :href="route('reports.index')" icon="log" :active="request()->routeIs('reports.*')">Hisobotlar</x-nav-link>
+        @endcan
+        <x-nav-link :href="route('help.index')" icon="sparkles" :active="request()->routeIs('help.*', 'ai.*')">Yordam</x-nav-link>
+        @can('settings.branch')
+            <x-nav-link :href="route('catalog.index', 'rooms')" icon="cog" :active="request()->is('settings/*') && ! request()->is('settings/courses*')">Sozlamalar</x-nav-link>
+        @endcan
         @canany(['courses.view', 'courses.manage'])
             <x-nav-link :href="route('catalog.index', 'courses')" icon="book" :active="request()->is('settings/courses*') || request()->routeIs('courses.*')">Kurslar</x-nav-link>
         @endcanany
-
+        @if ($me->canany(['sms.view', 'sms.send', 'sms.manage']))
+            <x-nav-link :href="route('sms.index')" icon="message" :active="request()->routeIs('sms.*')">SMS</x-nav-link>
+        @endif
+        @can('staff.view_all_branches')
+            <x-nav-link :href="route('staff.directory')" icon="users" :active="request()->routeIs('staff.directory')">Filiallar xodimlari</x-nav-link>
+        @endcan
         @can('staff.view')
             <x-nav-link :href="route('staff.index')" icon="shield" :active="request()->routeIs('staff.index') || request()->routeIs('staff.create') || request()->routeIs('staff.edit')">Hodimlar</x-nav-link>
         @elsecan('teachers.view')
             <x-nav-link :href="route('staff.index', ['role' => 'teacher'])" icon="shield" :active="request()->routeIs('staff.index') || request()->routeIs('staff.create') || request()->routeIs('staff.edit')">O'qituvchilar</x-nav-link>
         @endcan
-
-        @can('staff.view_all_branches')
-            <x-nav-link :href="route('staff.directory')" icon="users" :active="request()->routeIs('staff.directory')">Filiallar xodimlari</x-nav-link>
-        @endcan
-
-        @can('settings.branch')
-            <x-nav-link :href="route('catalog.index', 'rooms')" icon="cog" :active="request()->is('settings/*') && ! request()->is('settings/courses*')">Sozlamalar</x-nav-link>
-        @endcan
-
-        @if ($me->canany(['sms.view', 'sms.send', 'sms.manage']))
-            <x-nav-link :href="route('sms.index')" icon="message" :active="request()->routeIs('sms.*')">SMS</x-nav-link>
+        @if ($me->can('teachers.view') || $me->can('staff.view'))
+            <x-nav-link :href="route('payroll.index')" icon="briefcase" :active="request()->routeIs('payroll.*')">Ish haqi</x-nav-link>
         @endif
-
-        <x-nav-link :href="route('help.index')" icon="sparkles" :active="request()->routeIs('help.*', 'ai.*')">Yordam</x-nav-link>
-
+        @if ($me->isSuperAdmin())
+            <x-nav-link :href="route('branches.index')" icon="building" :active="request()->routeIs('branches.*')">Filiallar</x-nav-link>
+            <x-nav-link :href="route('system-status.index')" icon="cog" :active="request()->routeIs('system-status.*')">Tizim holati</x-nav-link>
+            <x-nav-link :href="route('notifications.index')" icon="bell" :active="request()->routeIs('notifications.*')">Bildirishnomalar</x-nav-link>
+            <x-nav-link :href="route('app-version.edit')" icon="phone" :active="request()->routeIs('app-version.*')">Ilova versiyasi</x-nav-link>            
+        @endif
         @can('audit.view')
             <x-nav-link :href="route('audit.index')" icon="log" :active="request()->routeIs('audit.*')">Harakatlar jurnali</x-nav-link>
+            <x-nav-link href="{{ route('docs.index') }}" icon="book" target="_blank">API hujjati</x-nav-link>
         @endcan
     </nav>
-
     <div class="border-t border-ink-100 p-3 dark:border-ink-800">
         <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 rounded-xl p-2 hover:bg-ink-50 dark:hover:bg-ink-800">
             <span class="flex h-9 w-9 items-center justify-center rounded-full bg-brand-100 text-sm font-bold text-brand-700 dark:bg-brand-950 dark:text-brand-300">{{ mb_strtoupper(mb_substr($me->name, 0, 1)) }}</span>
