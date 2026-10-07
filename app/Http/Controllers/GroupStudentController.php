@@ -55,7 +55,8 @@ class GroupStudentController extends Controller
 
         return view('enrollments.contract', [
             'enrollment' => $enrollment,
-            'text' => $contracts->render($enrollment),
+            'text' => $text = $contracts->render($enrollment),
+            'html' => ContractService::toHtml($text),
         ]);
     }
 }

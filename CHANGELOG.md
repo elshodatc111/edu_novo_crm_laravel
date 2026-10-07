@@ -19,7 +19,7 @@ Loyiha noldan, toza arxitektura bilan qayta yozildi (eski koddagi xatolar ko'chi
 - Mobil API v1 asosi: login, profil, parol, chiqish; yagona javob va xato formati.
 - Barcha interfeys va xato xabarlari o'zbek tilida.
 
-**Sifat**
+**Sifat** 
 - 33 ta avtomatik test (kirish, filial cheklovi, ruxsat qoidalari, API).
 - Nomlar tozalandi: `techer`→`teacher`, `meneger`→`manager` va h.k.
 - Keraksiz paketlar (`laravel/ui`, Bootstrap, Sass va boshqalar) olib tashlandi.
@@ -313,6 +313,9 @@ Loyiha noldan, toza arxitektura bilan qayta yozildi (eski koddagi xatolar ko'chi
 - **Yon menyu:** bo'limlarga guruhlangan, yig'iladigan/ochiladigan menyu (holat brauzerda eslab qolinadi).
 
 - **Kassa ruxsatlari ajratildi:** «Xarajat so'rovi» (`cashbox.request`) va yangi «Chiqim so'rovi» (`cashbox.withdraw`, moliya balansiga o'tkazish) alohida. Migratsiya `2026_10_08_000004` mavjud `cashbox.request` egalariga `cashbox.withdraw` ni ham beradi (imkoniyat o'zgarmaydi). Yangi menejerga standart shablon faqat xarajatni beradi. Mobil API: `kind=withdrawal` endi `cashbox.withdraw` talab qiladi.
+
+- **To'liq standart shartnoma:** 10 bo'limli o'quv xizmati shartnomasi (predmet, narx va to'lov, davomat, huquq-majburiyatlar, bekor qilish va pulni qaytarish, shaxsiy ma'lumotlar, fors-major, nizolar, rekvizitlar). Sozlamalar → Shartnoma sahifasida standart matn endi oynada ko'rinadi (avval oyna bo'sh turardi) va tahrirlash mumkin. O'zi matn saqlagan filiallarga ta'sir qilmaydi.
+- **Shartnoma chop etish ko'rinishi:** endi rasmiy hujjat ko'rinishida — A4, Times New Roman 12 pt, ikki chetga tekislangan bandlar, markazdagi qalin sarlavhalar, imzo bloki ikki ustunli jadvalda, sahifa raqamlari. STIR yoki direktor ismi kiritilmagan bo'lsa, qo'lda to'ldirish uchun chiziq (____) chiqadi. Oddiy matnli eski/maxsus shablonlar ham shu ko'rinishda chiqadi.
 
 **Tuzatishlar**
 - Operatorga ish haqi to'lashda chiqadigan 404 xatosi (tasdiqlash sahifasi) tuzatildi.

@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('title', 'Shartnoma')
 
-@section('content')
+@section('content') 
     <x-page-header title="Shartnoma" subtitle="O'quvchi guruhga qo'shilganda chop etiladigan shartnoma matni" />
     @include('partials.settings-tabs')
 
@@ -20,10 +20,10 @@
 
         <div>
             <label class="label" for="contract_template">Shartnoma matni</label>
-            <textarea id="contract_template" name="contract_template" rows="24" maxlength="20000" class="input font-mono text-xs leading-relaxed">{{ old('contract_template', $branch->contract_template) }}</textarea>
+            <textarea id="contract_template" name="contract_template" rows="32" maxlength="20000" class="input font-mono text-xs leading-relaxed">{{ old('contract_template', $template) }}</textarea>
             @error('contract_template')<p class="error-text">{{ $message }}</p>@enderror
             @if ($isDefault)
-                <p class="hint">Hozir standart namuna ishlatilmoqda (yuqorida ko'rsatilgan). O'zgartirib saqlasangiz, shu matn ishlatiladi.</p>
+                <p class="hint">Hozir standart namuna ishlatilmoqda (yuqorida ko'rsatilgan). Uni o'zingizga moslab o'zgartirib «Saqlash»ni bossangiz, filialingiz uchun shu matn ishlatiladi; o'zgartirmasangiz ham standart namuna qo'llanaveradi.</p>
             @endif
         </div>
 
