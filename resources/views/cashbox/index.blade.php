@@ -16,23 +16,36 @@
     </div>
 
     <div class="mt-6 grid gap-6 lg:grid-cols-3">
-        @can('cashbox.request')
+        @php
+            $canExpense = auth()->user()->can('cashbox.request');
+            $canWithdraw = auth()->user()->can('cashbox.withdraw');
+            $canRequest = $canExpense || $canWithdraw;
+        @endphp
+        @if ($canRequest)
             <div x-data="confirmForm('So\'rovni tasdiqlang')" class="h-fit">
-            <form method="POST" action="{{ route('cashbox.store') }}" x-data="{ kind: '{{ old('kind', 'expense') }}' }" class="card card-body space-y-4">
+            <form method="POST" action="{{ route('cashbox.store') }}" x-data="{ kind: '{{ old('kind', $canExpense ? 'expense' : 'withdrawal') }}' }" class="card card-body space-y-4">
                 @csrf
                 <x-once />
                 <h2 class="text-base font-semibold text-ink-900 dark:text-white">Chiqim yoki xarajat so'rovi</h2>
                 <p class="text-sm text-ink-500">Pul kassadan darhol yechiladi. Admin tasdiqlaydi yoki bekor qiladi (pul qaytadi).</p>
-                <x-select name="kind" label="Turi" required x-model="kind">
-                    <option value="expense">Xarajat (sarflandi)</option>
-                    <option value="withdrawal">Chiqim (moliya balansiga o'tkazish)</option>
-                </x-select>
+                @if ($canExpense && $canWithdraw)
+                    <x-select name="kind" label="Turi" required x-model="kind">
+                        <option value="expense">Xarajat (sarflandi)</option>
+                        <option value="withdrawal">Chiqim (moliya balansiga o'tkazish)</option>
+                    </x-select>
+                @else
+                    {{-- Faqat bitta turga ruxsat bor: tanlov o'rniga aniq ko'rsatiladi --}}
+                    <input type="hidden" name="kind" value="{{ $canExpense ? 'expense' : 'withdrawal' }}">
+                    <div class="rounded-xl bg-ink-50 px-3 py-2 text-sm text-ink-700 dark:bg-ink-800 dark:text-ink-200">
+                        Turi: <b>{{ $canExpense ? 'Xarajat (sarflandi)' : "Chiqim (moliya balansiga o'tkazish)" }}</b>
+                    </div>
+                @endif
                 <x-select name="method" label="Qaysi kassadan" required>
                     <option value="cash">Naqt</option><option value="card">Plastik</option>
                 </x-select>
                 <x-input name="amount" money label="Summa (so'm)" required />
                 <x-input name="description" label="Izoh" required />
-                @if ($expenseCategories->isNotEmpty())
+                @if ($canExpense && $expenseCategories && $expenseCategories->isNotEmpty())
                     <div x-show="kind === 'expense'" x-cloak>
                         <x-select name="category_id" label="Xarajat turi (ixtiyoriy)">
                             <option value="">— tanlanmagan —</option>
@@ -46,9 +59,9 @@
             </form>
             <x-money-confirm />
             </div>
-        @endcan
+        @endif
 
-        <div class="space-y-6 {{ auth()->user()->can('cashbox.request') ? 'lg:col-span-2' : 'lg:col-span-3' }}">
+        <div class="space-y-6 {{ (auth()->user()->can('cashbox.request') || auth()->user()->can('cashbox.withdraw')) ? 'lg:col-span-2' : 'lg:col-span-3' }}">
             <div class="card overflow-hidden">
                 <h2 class="px-5 pt-5 text-lg font-semibold text-ink-900 dark:text-white sm:px-6">Tasdiq kutayotgan so'rovlar</h2>
                 <div class="table-wrap mt-3">
@@ -67,7 +80,7 @@
                                         @can('cashbox.approve')
                                             <form method="POST" action="{{ route('cashbox.approve', $r) }}">@csrf<button class="btn-primary btn-sm">Tasdiqlash</button></form>
                                         @endcan
-                                        @if (auth()->user()->can('cashbox.approve') || (auth()->user()->can('cashbox.request') && $r->requested_by === auth()->id()))
+                                        @if (auth()->user()->can('cashbox.approve') || (auth()->user()->can($r->permission()) && $r->requested_by === auth()->id()))
                                             <form method="POST" action="{{ route('cashbox.cancel', $r) }}" onsubmit="return confirm('Bekor qilinsinmi? Pul kassaga qaytadi.')">@csrf<button class="btn-ghost btn-sm">Bekor</button></form>
                                         @endif
                                     </div>

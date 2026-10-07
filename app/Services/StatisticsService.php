@@ -13,6 +13,7 @@ use App\Models\Payment;
 use App\Models\Payout;
 use App\Models\User;
 use App\Models\WalletTransaction;
+use App\Support\Viz;
 use Carbon\CarbonImmutable;
 
 /**
@@ -248,6 +249,231 @@ class StatisticsService
         }
 
         return $out;
+    }
+
+    /**
+     * v13: tushum dinamikasi kun / hafta / oy kesimida (aniq, qat'iy oynalar):
+     *  - day:   so'nggi 30 kun (bugun bilan);
+     *  - week:  so'nggi 12 hafta (dushanba–yakshanba; joriy hafta bugungacha);
+     *  - month: so'nggi 12 oy (joriy oy bugungacha).
+     * Har bir davr: naqt, plastik, tushum, qaytarilgan, sof tushum, to'lovlar soni va oldingi davrga nisbatan
+     * sof tushum o'zgarishi (%; oldingi davr 0 bo'lsa null). Storno qilingan to'lov va rad etilgan qaytarish kirmaydi.
+     *
+     * @return array{unit:string,rows:array<int,array<string,mixed>>,totals:array<string,int>,average:int}
+     */
+    public function incomeDynamics(string $unit): array
+    {
+        $unit = in_array($unit, ['day', 'week', 'month'], true) ? $unit : 'day';
+        $today = CarbonImmutable::today();
+
+        $periods = [];
+        if ($unit === 'day') {
+            for ($i = 29; $i >= 0; $i--) {
+                $d = $today->subDays($i);
+                $periods[] = ['key' => $d->toDateString(), 'label' => $d->format('d.m'), 'from' => $d, 'to' => $d];
+            }
+        } elseif ($unit === 'week') {
+            for ($i = 11; $i >= 0; $i--) {
+                $from = $today->startOfWeek()->subWeeks($i);
+                $to = $from->endOfWeek()->startOfDay();
+                $to = $to->gt($today) ? $today : $to;
+                $periods[] = ['key' => $from->toDateString(), 'label' => $from->format('d.m').'–'.$to->format('d.m'), 'from' => $from, 'to' => $to];
+            }
+        } else {
+            for ($i = 11; $i >= 0; $i--) {
+                $from = $today->startOfMonth()->subMonths($i);
+                $to = $from->endOfMonth()->startOfDay();
+                $to = $to->gt($today) ? $today : $to;
+                $periods[] = ['key' => $from->format('Y-m'), 'label' => Viz::label($from->format('Y-m')), 'from' => $from, 'to' => $to];
+            }
+        }
+
+        $daily = $this->dailyMoney($periods[0]['from'], $today);
+
+        $rows = [];
+        $previousNet = null;
+        foreach ($periods as $p) {
+            $sum = ['cash' => 0, 'card' => 0, 'refunds' => 0, 'count' => 0];
+            for ($d = $p['from']; $d->lte($p['to']); $d = $d->addDay()) {
+                foreach (($daily[$d->toDateString()] ?? []) as $k => $v) {
+                    $sum[$k] += $v;
+                }
+            }
+            $income = $sum['cash'] + $sum['card'];
+            $net = $income - $sum['refunds'];
+
+            $rows[] = [
+                'key' => $p['key'], 'label' => $p['label'],
+                'cash' => $sum['cash'], 'card' => $sum['card'], 'income' => $income, 'refunds' => $sum['refunds'],
+                'net' => $net, 'count' => $sum['count'],
+                'change' => $previousNet ? round(($net - $previousNet) * 100 / abs($previousNet), 1) : null,
+            ];
+            $previousNet = $net;
+        }
+
+        $totals = [
+            'cash' => array_sum(array_column($rows, 'cash')), 'card' => array_sum(array_column($rows, 'card')),
+            'refunds' => array_sum(array_column($rows, 'refunds')), 'net' => array_sum(array_column($rows, 'net')),
+            'count' => array_sum(array_column($rows, 'count')),
+        ];
+
+        return ['unit' => $unit, 'rows' => $rows, 'totals' => $totals, 'average' => (int) round($totals['net'] / max(1, count($rows)))];
+    }
+
+    /**
+     * v13: «Bugun / Shu hafta / Shu oy» sof tushum va o'tgan davrning XUDDI SHU muddatigacha bo'lgan qismi bilan
+     * solishtirish (masalan, shu hafta dushanbadan bugungacha va o'tgan haftaning dushanbadan shu kunigacha).
+     *
+     * @return array<string,array{net:int,previous:int,change:float|null,count:int}>
+     */
+    public function incomeSnapshot(): array
+    {
+        $today = CarbonImmutable::today();
+        $weekStart = $today->startOfWeek();
+        $monthStart = $today->startOfMonth();
+        $prevMonthStart = $monthStart->subMonthNoOverflow();
+        $prevMonthSameDay = $prevMonthStart->addDays(min($today->day, $prevMonthStart->daysInMonth) - 1);
+
+        $windows = [
+            'today' => [[$today, $today], [$today->subDay(), $today->subDay()]],
+            'week' => [[$weekStart, $today], [$weekStart->subWeek(), $today->subWeek()]],
+            'month' => [[$monthStart, $today], [$prevMonthStart, $prevMonthSameDay]],
+        ];
+
+        $out = [];
+        foreach ($windows as $key => [[$f, $t], [$pf, $pt]]) {
+            $cur = $this->netBetween($f, $t);
+            $prev = $this->netBetween($pf, $pt);
+            $out[$key] = ['net' => $cur['net'], 'previous' => $prev['net'], 'change' => $prev['net'] ? round(($cur['net'] - $prev['net']) * 100 / abs($prev['net']), 1) : null, 'count' => $cur['count']];
+        }
+
+        return $out;
+    }
+
+    /** @return array{net:int,count:int} */
+    private function netBetween(CarbonImmutable $from, CarbonImmutable $to): array
+    {
+        $r = Payment::query()->whereDate('created_at', '>=', $from->toDateString())->whereDate('created_at', '<=', $to->toDateString())
+            ->selectRaw("
+                coalesce(sum(case when type = 'payment' and reversed_at is null then amount end), 0) as income,
+                coalesce(sum(case when type = 'refund' and refund_rejected_at is null then amount end), 0) as refunds,
+                coalesce(sum(case when type = 'payment' and reversed_at is null then 1 end), 0) as cnt
+            ")->first();
+
+        return ['net' => (int) $r->income - (int) $r->refunds, 'count' => (int) $r->cnt];
+    }
+
+    /** @return array<string,array{cash:int,card:int,refunds:int,count:int}> sana => kunlik pul */
+    private function dailyMoney(CarbonImmutable $from, CarbonImmutable $to): array
+    {
+        $rows = Payment::query()
+            ->whereDate('created_at', '>=', $from->toDateString())->whereDate('created_at', '<=', $to->toDateString())
+            ->selectRaw("DATE(created_at) as d,
+                coalesce(sum(case when type = 'payment' and method = 'cash' and reversed_at is null then amount end), 0) as cash,
+                coalesce(sum(case when type = 'payment' and method = 'card' and reversed_at is null then amount end), 0) as card,
+                coalesce(sum(case when type = 'refund' and refund_rejected_at is null then amount end), 0) as refunds,
+                coalesce(sum(case when type = 'payment' and reversed_at is null then 1 end), 0) as cnt")
+            ->groupByRaw('DATE(created_at)')->get();
+
+        $out = [];
+        foreach ($rows as $r) {
+            $out[substr((string) $r->d, 0, 10)] = ['cash' => (int) $r->cash, 'card' => (int) $r->card, 'refunds' => (int) $r->refunds, 'count' => (int) $r->cnt];
+        }
+
+        return $out;
+    }
+
+    /**
+     * v13: bitta hodimning (admin / menejer / operator) faoliyati: qabul qilgan to'lovlari (soni va summasi),
+     * qo'shgan murojaatlari (shundan qabul qilinganlari), murojaatlarga yozgan izohlari va ro'yxatga olgan o'quvchilari.
+     *  - day:   so'nggi 30 kun (har kun alohida);  - month: so'nggi 12 oy.
+     * Storno qilingan to'lovlar hisobga olinmaydi.
+     *
+     * @return array{unit:string,rows:array<int,array<string,mixed>>,totals:array<string,int>}
+     */
+    public function staffActivity(User $person, string $unit = 'day'): array
+    {
+        $unit = $unit === 'month' ? 'month' : 'day';
+        $today = CarbonImmutable::today();
+        $from = $unit === 'month' ? $today->startOfMonth()->subMonths(11) : $today->subDays(29);
+        $f = $from->toDateString();
+        $t = $today->toDateString();
+
+        $fields = ['payments' => 0, 'cash' => 0, 'card' => 0, 'leads' => 0, 'converted' => 0, 'notes' => 0, 'students' => 0];
+        $byDate = [];
+        $add = function (string $date, array $values) use (&$byDate, $fields) {
+            $date = substr($date, 0, 10);
+            $byDate[$date] ??= $fields;
+            foreach ($values as $k => $v) {
+                $byDate[$date][$k] += (int) $v;
+            }
+        };
+
+        $pay = Payment::query()->where('created_by', $person->id)->where('type', Payment::PAYMENT)->whereNull('reversed_at')
+            ->whereDate('created_at', '>=', $f)->whereDate('created_at', '<=', $t)
+            ->selectRaw("DATE(created_at) as d, count(*) as c,
+                coalesce(sum(case when method = 'cash' then amount end), 0) as cash,
+                coalesce(sum(case when method = 'card' then amount end), 0) as card")
+            ->groupByRaw('DATE(created_at)')->get();
+        foreach ($pay as $r) {
+            $add($r->d, ['payments' => $r->c, 'cash' => $r->cash, 'card' => $r->card]);
+        }
+
+        $leads = Lead::query()->where('created_by', $person->id)
+            ->whereDate('created_at', '>=', $f)->whereDate('created_at', '<=', $t)
+            ->selectRaw("DATE(created_at) as d, count(*) as c, coalesce(sum(case when status = ? then 1 else 0 end), 0) as conv", [Lead::CONVERTED])
+            ->groupByRaw('DATE(created_at)')->get();
+        foreach ($leads as $r) {
+            $add($r->d, ['leads' => $r->c, 'converted' => $r->conv]);
+        }
+
+        $notes = \App\Models\LeadNote::query()->where('user_id', $person->id)->where('type', 'note')->whereIn('lead_id', Lead::query()->select('id'))
+            ->whereDate('created_at', '>=', $f)->whereDate('created_at', '<=', $t)
+            ->selectRaw('DATE(created_at) as d, count(*) as c')->groupByRaw('DATE(created_at)')->get();
+        foreach ($notes as $r) {
+            $add($r->d, ['notes' => $r->c]);
+        }
+
+        $students = \App\Models\AuditLog::query()->where('user_id', $person->id)->where('action', 'student.created')->when(\App\Support\BranchContext::id(), fn ($q, $id) => $q->where('branch_id', $id))
+            ->whereDate('created_at', '>=', $f)->whereDate('created_at', '<=', $t)
+            ->selectRaw('DATE(created_at) as d, count(*) as c')->groupByRaw('DATE(created_at)')->get();
+        foreach ($students as $r) {
+            $add($r->d, ['students' => $r->c]);
+        }
+
+        // Davrlarga yig'ish (eng yangisi tepada)
+        $periods = [];
+        if ($unit === 'day') {
+            for ($d = $today; $d->gte($from); $d = $d->subDay()) {
+                $periods[$d->toDateString()] = ['label' => $d->format('d.m.Y'), 'dates' => [$d->toDateString()]];
+            }
+        } else {
+            for ($m = $today->startOfMonth(); $m->gte($from); $m = $m->subMonthNoOverflow()) {
+                $periods[$m->format('Y-m')] = ['label' => Viz::label($m->format('Y-m')), 'dates' => []];
+            }
+            foreach (array_keys($byDate) as $date) {
+                $periods[substr($date, 0, 7)]['dates'][] = $date;
+            }
+        }
+
+        $rows = [];
+        $totals = $fields;
+        foreach ($periods as $key => $p) {
+            $row = $fields;
+            foreach ($p['dates'] as $date) {
+                foreach ($byDate[$date] ?? [] as $k => $v) {
+                    $row[$k] += $v;
+                }
+            }
+            foreach ($row as $k => $v) {
+                $totals[$k] += $v;
+            }
+            $rows[] = ['key' => $key, 'label' => $p['label'], 'total' => $row['cash'] + $row['card']] + $row;
+        }
+
+        $totals['total'] = $totals['cash'] + $totals['card'];
+
+        return ['unit' => $unit, 'rows' => $rows, 'totals' => $totals];
     }
 
     /**

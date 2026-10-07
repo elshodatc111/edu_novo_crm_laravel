@@ -4,11 +4,13 @@
 @section('content')
     <x-page-header title="To'lovlar" subtitle="To'lov qabul qilish o'quvchi sahifasidan amalga oshiriladi" />
 
+    @can('payments.view_totals')
     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         @foreach ([["Naqt", $totals->cash, 'text-emerald-600'], ["Plastik", $totals->card, 'text-emerald-600'], ["Chegirma va bonus", $totals->discounts, 'text-amber-600'], ["Qaytarilgan", $totals->refunds, 'text-brand-600']] as [$l, $v, $c])
             <div class="card card-body"><div class="text-sm text-ink-500">{{ $l }}</div><div class="mt-1 text-xl font-bold {{ $c }}">{{ \App\Support\Format::money($v) }}</div></div>
         @endforeach
     </div>
+    @endcan
 
     <div class="card mt-6 overflow-hidden">
         <form method="GET" class="grid gap-3 border-b border-ink-100 p-4 dark:border-ink-800 md:grid-cols-6">

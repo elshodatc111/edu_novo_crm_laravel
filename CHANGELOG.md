@@ -300,3 +300,22 @@ Loyiha noldan, toza arxitektura bilan qayta yozildi (eski koddagi xatolar ko'chi
 - Ilova versiyasi tekshiruvi faqat ilova o'zi so'rov yuborsa ishlaydi — eski, hali yangilanmagan ilova versiyalari serverga umuman ulanmasa, bu haqda ma'lumot yo'q.
 - `/docs` sahifasi ochiq (kirish talab qilinmaydi), chunki maqsadli auditoriya (tashqi mobil dasturchi) CRM hisobiga ega emas; qidiruv tizimlariga ko'rinmasligi uchun `noindex` belgilangan, lekin havolani bilgan har kim o'qiy oladi (maxfiy ma'lumot yo'q, faqat texnik API tavsifi).
 
+## v13 (2026-10-08)
+
+**Yangiliklar**
+- **Eslatmalar qo'ng'iroqchasi:** yuqori panelda filialdagi faol o'quvchi eslatmalari soni va ro'yxati (har 15 soniyada yangilanadi); eslatmani o'chirmasdan «Yopish»/«Qayta ochish» (hamma uchun umumiy), son shunga qarab o'zgaradi.
+- **Yangi ruxsat `payments.view_totals`:** To'lovlar sahifasidagi umumiy yig'indilarni alohida ko'rsatish/yashirish. Migratsiya mavjud adminlarga uni beradi; menejer/operatorga sAdmin yoki admin alohida beradi.
+- **Lavozimni o'zgartirish:** hodimni tahrirlashda (ruxsatlar yangi lavozim shabloniga qaytadi, mobil seanslar tugaydi; tugamagan guruhli o'qituvchi uchun bloklanadi).
+- **Bir nechta sAdmin:** Tizim → Super adminlar (qo'shish, bloklash/faollashtirish, olib tashlash; o'zini va oxirgi faol sAdmin'ni himoya).
+- **Qo'shimcha filialli operator:** sAdmin operatorga qo'shimcha filiallarni berib/olib tashlaydi (`user_branches` jadvali); operator filial tanlagich (va mobil `X-Branch-Id`) orqali faqat ruxsat etilgan filiallarga o'tadi, boshqa filial yozuvlari ko'rinmaydi.
+- **Hodim faoliyati statistikasi:** admin/menejer/operator ish haqi kartochkasida kunlik (30 kun) va oylik (12 oy) to'lovlar soni/summasi, murojaatlar, izohlar, o'quvchilar.
+- **Tushum dinamikasi:** Statistikada kun/hafta/oy bo'yicha aniq dinamika, «Bugun/Hafta/Oy» kartalari va o'tgan davr bilan solishtirish.
+- **Yon menyu:** bo'limlarga guruhlangan, yig'iladigan/ochiladigan menyu (holat brauzerda eslab qolinadi).
+
+- **Kassa ruxsatlari ajratildi:** «Xarajat so'rovi» (`cashbox.request`) va yangi «Chiqim so'rovi» (`cashbox.withdraw`, moliya balansiga o'tkazish) alohida. Migratsiya `2026_10_08_000004` mavjud `cashbox.request` egalariga `cashbox.withdraw` ni ham beradi (imkoniyat o'zgarmaydi). Yangi menejerga standart shablon faqat xarajatni beradi. Mobil API: `kind=withdrawal` endi `cashbox.withdraw` talab qiladi.
+
+**Tuzatishlar**
+- Operatorga ish haqi to'lashda chiqadigan 404 xatosi (tasdiqlash sahifasi) tuzatildi.
+
+**Yangilash:** `php artisan migrate`, `npm install && npm run build`, `php artisan test`. Yangi migratsiyalar: `2026_10_08_000001..000004`.
+

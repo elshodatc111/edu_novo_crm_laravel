@@ -192,13 +192,19 @@
                     <li class="relative text-sm">
                         <span class="absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full bg-brand-500"></span>
                         <div class="flex items-start justify-between gap-3">
-                            <div class="whitespace-pre-wrap text-ink-700 dark:text-ink-200">{{ $n->body }}</div>
-                            <form method="POST" action="{{ route('students.notes.destroy', [$student, $n]) }}" onsubmit="return confirm('Eslatma o\'chirilsinmi?')">
-                                @csrf @method('DELETE')
-                                <button class="shrink-0 text-xs text-ink-400 hover:text-brand-600">O'chirish</button>
-                            </form>
+                            <div class="whitespace-pre-wrap {{ $n->isClosed() ? 'text-ink-400 line-through' : 'text-ink-700 dark:text-ink-200' }}">{{ $n->body }}</div>
+                            <div class="flex shrink-0 items-center gap-3">
+                                <form method="POST" action="{{ $n->isClosed() ? route('notes.reopen', $n) : route('notes.close', $n) }}">
+                                    @csrf
+                                    <button class="text-xs text-ink-400 hover:text-brand-600">{{ $n->isClosed() ? 'Qayta faollashtirish' : 'Faolsizlantirish' }}</button>
+                                </form>
+                                <form method="POST" action="{{ route('students.notes.destroy', [$student, $n]) }}" onsubmit="return confirm('Eslatma o\'chirilsinmi?')">
+                                    @csrf @method('DELETE')
+                                    <button class="text-xs text-ink-400 hover:text-brand-600">O'chirish</button>
+                                </form>
+                            </div>
                         </div>
-                        <div class="text-xs text-ink-400">{{ $n->created_at->format('d.m.Y H:i') }} · {{ $n->user?->name ?? '—' }}</div>
+                        <div class="text-xs text-ink-400">{{ $n->created_at->format('d.m.Y H:i') }} · {{ $n->user?->name ?? '—' }}@if ($n->isClosed()) · <span class="badge-gray">Yopilgan: {{ $n->closed_at->format('d.m.Y H:i') }}{{ $n->closer ? ', '.$n->closer->name : '' }}</span>@endif</div>
                     </li>
                 @endforeach
             </ol>

@@ -47,7 +47,7 @@ class PaymentController extends Controller
             'totals' => $totals,
             'from' => $from,
             'to' => $to,
-            'cashiers' => User::visibleToContext()->whereIn('role', ['admin', 'manager'])->orderBy('name')->get(['id', 'name']),
+            'cashiers' => User::visibleToContext()->whereIn('role', ['admin', 'manager', 'operator'])->orderBy('name')->get(['id', 'name']),
         ]);
     }
 

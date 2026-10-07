@@ -50,7 +50,8 @@ class CashboxController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $this->authorize('cashbox.request');
+        $user = $request->user();
+        abort_unless($user->can('cashbox.request') || $user->can('cashbox.withdraw'), 403);
 
         $data = $request->validate([
             'kind' => ['required', Rule::in([CashRequest::WITHDRAWAL, CashRequest::EXPENSE])],
@@ -59,6 +60,9 @@ class CashboxController extends Controller
             'description' => ['required', 'string', 'max:255'],
             'category_id' => ['nullable', 'integer'],
         ], [], ['kind' => 'Turi', 'method' => "To'lov turi", 'amount' => 'Summa', 'description' => 'Izoh', 'category_id' => 'Xarajat turi']);
+
+        // v13: tur bo'yicha alohida ruxsat - xarajat `cashbox.request`, chiqim `cashbox.withdraw`
+        abort_unless($user->can(CashRequest::permissionFor($data['kind'])), 403);
 
         $this->cashbox->request($data['kind'], PayMethod::from($data['method']), (int) $data['amount'], $data['description'], $request->user(), isset($data['category_id']) ? (int) $data['category_id'] : null);
 
@@ -96,7 +100,7 @@ class CashboxController extends Controller
     public function cancel(Request $request, CashRequest $cashRequest): RedirectResponse
     {
         $user = $request->user();
-        abort_unless($user->can('cashbox.approve') || ($user->can('cashbox.request') && $cashRequest->requested_by === $user->id), 403);
+        abort_unless($user->can('cashbox.approve') || ($user->can($cashRequest->permission()) && $cashRequest->requested_by === $user->id), 403);
 
         $this->cashbox->cancel($cashRequest, $user);
 

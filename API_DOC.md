@@ -378,9 +378,9 @@ Javobda yangi o'quvchi login/parol (`credentials`) qaytadi (agar yangi hisob yar
 |---|---|---|
 | GET | `/cashbox` | `cashbox.view` (+ `X-Branch-Id` sAdmin uchun) |
 | GET | `/cashbox/expense-categories` | `cashbox.request` (+ `X-Branch-Id` sAdmin uchun) |
-| POST | `/cashbox/requests` | `cashbox.request` (+ `X-Branch-Id`) |
+| POST | `/cashbox/requests` | `kind=expense` uchun `cashbox.request`, `kind=withdrawal` uchun `cashbox.withdraw` (+ `X-Branch-Id`) |
 | POST | `/cashbox/requests/{id}/approve` | `cashbox.approve` |
-| POST | `/cashbox/requests/{id}/cancel` | `cashbox.approve` yoki so'rov egasi |
+| POST | `/cashbox/requests/{id}/cancel` | `cashbox.approve` yoki so'rov egasi (shu tur ruxsati bilan) |
 
 `POST /cashbox/requests`:
 ```json

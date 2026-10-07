@@ -79,7 +79,7 @@ class StudentController extends Controller
         return view('students.show', [
             'student' => $student,
             'memberships' => $student->memberships()->with(['group.teacher', 'addedBy', 'removedBy'])->orderByDesc('is_active')->orderByDesc('id')->get(),
-            'notes' => auth()->user()->can('students.notes') ? $student->notes()->with('user')->latest()->get() : collect(),
+            'notes' => auth()->user()->can('students.notes') ? $student->notes()->with(['user', 'closer'])->latest()->get() : collect(),
             'timeline' => app(\App\Services\StudentTimeline::class)->for($student),
             'campaigns' => auth()->user()->can('payments.create') ? \App\Models\DiscountCampaign::running()->orderBy('name')->get() : collect(),
             'availableGroups' => auth()->user()->can('groups.members')

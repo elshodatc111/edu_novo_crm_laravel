@@ -10,6 +10,7 @@ use App\Models\Payout;
 use App\Models\User;
 use App\Services\ConfirmationService;
 use App\Services\PayrollService;
+use App\Services\StatisticsService;
 use App\Services\WalletService;
 use App\Support\BranchContext;
 use App\Support\Format;
@@ -46,14 +47,18 @@ class PayrollController extends Controller
         return view('payroll.index', ['rows' => $rows, 'tab' => $tab, 'canTeachers' => $canTeachers, 'canStaff' => $canStaff]);
     }
 
-    public function show(User $user, WalletService $wallets)
+    public function show(User $user, WalletService $wallets, StatisticsService $stats)
     {
         $this->authorizeView($user);
 
         $isTeacher = $user->role === Role::Teacher;
         $balances = $wallets->balances(BranchContext::id());
 
+        $act = request()->query('act') === 'month' ? 'month' : 'day';
+
         return view('payroll.show', [
+            'activity' => $isTeacher ? null : $stats->staffActivity($user, $act),
+            'act' => $act,
             'person' => $user,
             'isTeacher' => $isTeacher,
             'accruals' => $isTeacher ? $this->payroll->teacherAccruals($user) : [],

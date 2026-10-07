@@ -44,7 +44,58 @@ class BranchContext
             return $id ? (int) $id : null;
         }
 
+        // v13: qo'shimcha filialli operator - o'ziga ruxsat berilgan filiallardan birini tanlay oladi
+        if ($user->role === Role::Operator && $user->branch_id) {
+            $extra = self::extraBranchIds($user);
+
+            if ($extra !== []) {
+                $header = request()?->header(self::HEADER);
+                $wanted = $header !== null ? (int) $header : (int) session(self::SESSION_KEY);
+
+                if ($wanted > 0 && ($wanted === (int) $user->branch_id || in_array($wanted, $extra, true))) {
+                    return $wanted;
+                }
+            }
+        }
+
         return $user->branch_id ? (int) $user->branch_id : 0;
+    }
+
+    /**
+     * v13: foydalanuvchiga (operator) berilgan faol qo'shimcha filial ID lari. Global scope bo'lmagan oddiy so'rov
+     * (rekursiya bo'lmasligi uchun) va so'rov davomida bir marta keshlanadi.
+     *
+     * @return array<int, int>
+     */
+    public static function extraBranchIds(\App\Models\User $user): array
+    {
+        $key = 'extra_branch_ids_'.$user->id;
+        $attrs = request()?->attributes;
+
+        if ($attrs && $attrs->has($key)) {
+            return $attrs->get($key);
+        }
+
+        $ids = \Illuminate\Support\Facades\DB::table('user_branches')
+            ->join('branches', 'branches.id', '=', 'user_branches.branch_id')
+            ->where('user_branches.user_id', $user->id)->where('branches.status', 'active')
+            ->pluck('user_branches.branch_id')->map(fn ($v) => (int) $v)->all();
+
+        $attrs?->set($key, $ids);
+
+        return $ids;
+    }
+
+    /** Foydalanuvchi ishlay oladigan barcha filial ID lari (o'zi + qo'shimcha). */
+    public static function accessibleBranchIds(\App\Models\User $user): array
+    {
+        return array_values(array_unique(array_filter([(int) $user->branch_id, ...self::extraBranchIds($user)])));
+    }
+
+    /** Keshni tozalash (ruxsatlar shu so'rovda o'zgargan bo'lsa). */
+    public static function forgetExtra(\App\Models\User $user): void
+    {
+        request()?->attributes->remove('extra_branch_ids_'.$user->id);
     }
 
     /** Faqat joriy filialdagi yozuvni qabul qiladigan `exists` qoidasi. */

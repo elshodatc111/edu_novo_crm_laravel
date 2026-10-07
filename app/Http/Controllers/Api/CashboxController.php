@@ -44,7 +44,7 @@ class CashboxController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        abort_unless($request->user()->can('cashbox.request'), 403);
+        abort_unless($request->user()->can('cashbox.request') || $request->user()->can('cashbox.withdraw'), 403);
 
         $data = $request->validate([
             'kind' => ['required', Rule::in([CashRequest::WITHDRAWAL, CashRequest::EXPENSE])],
@@ -53,6 +53,8 @@ class CashboxController extends Controller
             'description' => ['required', 'string', 'max:255'],
             'category_id' => ['nullable', 'integer'],
         ], [], ['kind' => 'Turi', 'method' => "To'lov turi", 'amount' => 'Summa', 'description' => 'Izoh', 'category_id' => 'Xarajat turi']);
+
+        abort_unless($request->user()->can(CashRequest::permissionFor($data['kind'])), 403);
 
         $created = $this->cashbox->request($data['kind'], PayMethod::from($data['method']), (int) $data['amount'], $data['description'], $request->user(), isset($data['category_id']) ? (int) $data['category_id'] : null);
 
@@ -71,7 +73,7 @@ class CashboxController extends Controller
     public function cancel(Request $request, CashRequest $cashRequest): JsonResponse
     {
         $user = $request->user();
-        abort_unless($user->can('cashbox.approve') || ($user->can('cashbox.request') && $cashRequest->requested_by === $user->id), 403);
+        abort_unless($user->can('cashbox.approve') || ($user->can($cashRequest->permission()) && $cashRequest->requested_by === $user->id), 403);
 
         $this->cashbox->cancel($cashRequest, $user);
 

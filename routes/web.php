@@ -30,6 +30,7 @@ use App\Http\Controllers\PublicLeadController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SmsController;
 use App\Http\Controllers\StatisticsController;
+use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\StaffDirectoryController;
 use App\Http\Controllers\StudentController;
@@ -59,9 +60,11 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('profile/password', [ProfileController::class, 'password'])->name('profile.password');
 
+    // Filial almashtirish: sAdmin (barcha filiallar) va qo'shimcha filialli operator (faqat o'ziga berilganlar)
+    Route::post('branch/switch', [BranchController::class, 'switch'])->name('branches.switch');
+
     // Filiallar (faqat sAdmin)
     Route::middleware('role:sadmin')->group(function () {
-        Route::post('branch/switch', [BranchController::class, 'switch'])->name('branches.switch');
         Route::resource('branches', BranchController::class)->except(['show', 'destroy']);
         Route::post('branches/{branch}/close', [BranchController::class, 'close'])->name('branches.close');
         Route::post('branches/{branch}/reopen', [BranchController::class, 'reopen'])->name('branches.reopen');
@@ -80,6 +83,13 @@ Route::middleware(['auth', 'active'])->group(function () {
         // v12: mobil ilova versiyasi (majburiy/yumshoq yangilash) sozlamalari
         Route::get('app-version', [AppVersionSettingsController::class, 'edit'])->name('app-version.edit');
         Route::put('app-version', [AppVersionSettingsController::class, 'update'])->name('app-version.update');
+
+        // v13: bir nechta sAdmin - qo'shish, bloklash, olib tashlash
+        Route::get('superadmins', [SuperAdminController::class, 'index'])->name('superadmins.index');
+        Route::get('superadmins/create', [SuperAdminController::class, 'create'])->name('superadmins.create');
+        Route::post('superadmins', [SuperAdminController::class, 'store'])->name('superadmins.store');
+        Route::post('superadmins/{id}/toggle', [SuperAdminController::class, 'toggle'])->whereNumber('id')->name('superadmins.toggle');
+        Route::delete('superadmins/{id}', [SuperAdminController::class, 'destroy'])->whereNumber('id')->name('superadmins.destroy');
     });
 
     // Hodimlar va ruxsatlar
@@ -104,6 +114,10 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::post('students/{student}/reset-password', [StudentController::class, 'resetPassword'])->name('students.reset-password');
     Route::post('students/{student}/archive', [StudentController::class, 'archive'])->name('students.archive');
     Route::post('students/{student}/restore', [StudentController::class, 'restore'])->name('students.restore');
+    // v13: yuqori paneldagi eslatmalar qo'ng'iroqchasi (har 15 soniyada so'raladi) va faolsizlantirish
+    Route::get('notes/feed', [StudentNoteController::class, 'feed'])->middleware('throttle:120,1')->name('notes.feed');
+    Route::post('notes/{note}/close', [StudentNoteController::class, 'close'])->name('notes.close');
+    Route::post('notes/{note}/reopen', [StudentNoteController::class, 'reopen'])->name('notes.reopen');
     Route::post('students/{student}/notes', [StudentNoteController::class, 'store'])->name('students.notes.store');
     Route::delete('students/{student}/notes/{note}', [StudentNoteController::class, 'destroy'])->name('students.notes.destroy');
 

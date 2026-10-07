@@ -213,6 +213,13 @@ Batafsil ro'yxat, ma'lumotlar bazasi o'zgarishlari va cheklovlar: `CHANGELOG.md`
 - **Postman kolleksiyasi yangilandi:** `docs/Edunova_CRM_API.postman_collection.json` v12'dagi barcha (60 ta) endpoint'ni qamrab oladi; kolleksiya haqiqiy marshrutlar bilan avtomatik test orqali solishtiriladi (`tests/Unit/PostmanCollectionTest.php`) — kelajakda yangi endpoint qo'shilib, kolleksiya yangilanishi unutilsa, test buzilib xabar beradi.
 - **Hujjat tuzatildi:** `API_DOC.md`da bildirishnoma manzillari noto'g'ri `/me/notifications` deb yozilgan edi — to'g'risi `/notifications` (v11'dan beri shunday ishlagan, faqat hujjat xato edi); shuningdek avval hujjatlanmagan `GET /branches` endpoint'i qo'shildi.
 
+## 2.12. v13 yangiliklari
+
+- Eslatmalar qo'ng'iroqchasi, `payments.view_totals` ruxsati, lavozimni o'zgartirish, operatorga ish haqi to'lash tuzatildi.
+- Bir nechta sAdmin (Tizim → Super adminlar) va operatorga qo'shimcha filiallar (Hodimlar → operatorni tahrirlash, faqat sAdmin).
+- Hodim faoliyati statistikasi (ish haqi kartochkasi), kun/hafta/oy tushum dinamikasi, guruhlangan yon menyu.
+- Yangilash: `php artisan migrate` (4 ta yangi migratsiya), `npm install && npm run build`, `php artisan test`.
+
 ## 3. Birinchi qadamlar
 
 1. sAdmin sifatida kiring → **Filiallar** → **Yangi filial**.

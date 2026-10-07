@@ -13,6 +13,11 @@
 @php
     $me = auth()->user();
     $branches = $me->isSuperAdmin() ? \App\Models\Branch::orderBy('name')->get(['id', 'name', 'status']) : collect();
+    // v13: qo'shimcha filialli operator uchun ham filial tanlagich (faqat o'ziga ruxsat etilgan filiallar)
+    $multiBranch = ! $me->isSuperAdmin() && $me->role === \App\Enums\Role::Operator && \App\Support\BranchContext::extraBranchIds($me) !== [];
+    if ($multiBranch) {
+        $branches = \App\Models\Branch::whereIn('id', \App\Support\BranchContext::accessibleBranchIds($me))->orderBy('name')->get(['id', 'name', 'status']);
+    }
     $selectedBranch = \App\Support\BranchContext::id();
 @endphp
 
@@ -31,68 +36,7 @@
     </div>
 
     <nav class="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-        <x-nav-link :href="route('dashboard')" icon="home" :active="request()->routeIs('dashboard')">Bosh sahifa</x-nav-link>
-        @can('students.view')
-            <x-nav-link :href="route('students.index')" icon="cap" :active="request()->routeIs('students.*')">O'quvchilar</x-nav-link>
-        @endcan
-        @can('attendance.view')
-            <x-nav-link :href="route('attendance.today')" icon="calendar" :active="request()->routeIs('attendance.today')">Bugungi davomad</x-nav-link>
-        @endcan
-        @can('viewAny', \App\Models\Group::class)
-            <x-nav-link :href="route('groups.index')" icon="users" :active="request()->routeIs('groups.*')">{{ $me->role === \App\Enums\Role::Teacher ? 'Guruhlarim' : 'Guruhlar' }}</x-nav-link>
-        @endcan
-        @can('attendance.stats')
-            <x-nav-link :href="route('attendance.stats')" icon="chart" :active="request()->routeIs('attendance.stats')">Davomad statistikasi</x-nav-link>
-        @endcan
-        @can('leads.view')
-            <x-nav-link :href="route('leads.index')" icon="funnel" :active="request()->routeIs('leads.*')">Varonka</x-nav-link>
-        @endcan
-        @can('cashbox.view')
-            <x-nav-link :href="route('cashbox.index')" icon="wallet" :active="request()->routeIs('cashbox.*')">Kassa</x-nav-link>
-        @endcan
-        @can('finance.view')
-            <x-nav-link :href="route('finance.index')" icon="chart" :active="request()->routeIs('finance.*')">Moliya</x-nav-link>
-        @endcan
-        @can('payments.view')
-            <x-nav-link :href="route('payments.index')" icon="banknote" :active="request()->routeIs('payments.*')">To'lovlar</x-nav-link>
-        @endcan
-        @can('statistics.view')
-            <x-nav-link :href="route('statistics.index')" icon="chart" :active="request()->routeIs('statistics.*')">Statistika</x-nav-link>
-        @endcan
-        @can('reports.view')
-            <x-nav-link :href="route('reports.index')" icon="log" :active="request()->routeIs('reports.*')">Hisobotlar</x-nav-link>
-        @endcan
-        <x-nav-link :href="route('help.index')" icon="sparkles" :active="request()->routeIs('help.*', 'ai.*')">Yordam</x-nav-link>
-        @can('settings.branch')
-            <x-nav-link :href="route('catalog.index', 'rooms')" icon="cog" :active="request()->is('settings/*') && ! request()->is('settings/courses*')">Sozlamalar</x-nav-link>
-        @endcan
-        @canany(['courses.view', 'courses.manage'])
-            <x-nav-link :href="route('catalog.index', 'courses')" icon="book" :active="request()->is('settings/courses*') || request()->routeIs('courses.*')">Kurslar</x-nav-link>
-        @endcanany
-        @if ($me->canany(['sms.view', 'sms.send', 'sms.manage']))
-            <x-nav-link :href="route('sms.index')" icon="message" :active="request()->routeIs('sms.*')">SMS</x-nav-link>
-        @endif
-        @can('staff.view_all_branches')
-            <x-nav-link :href="route('staff.directory')" icon="users" :active="request()->routeIs('staff.directory')">Filiallar xodimlari</x-nav-link>
-        @endcan
-        @can('staff.view')
-            <x-nav-link :href="route('staff.index')" icon="shield" :active="request()->routeIs('staff.index') || request()->routeIs('staff.create') || request()->routeIs('staff.edit')">Hodimlar</x-nav-link>
-        @elsecan('teachers.view')
-            <x-nav-link :href="route('staff.index', ['role' => 'teacher'])" icon="shield" :active="request()->routeIs('staff.index') || request()->routeIs('staff.create') || request()->routeIs('staff.edit')">O'qituvchilar</x-nav-link>
-        @endcan
-        @if ($me->can('teachers.view') || $me->can('staff.view'))
-            <x-nav-link :href="route('payroll.index')" icon="briefcase" :active="request()->routeIs('payroll.*')">Ish haqi</x-nav-link>
-        @endif
-        @if ($me->isSuperAdmin())
-            <x-nav-link :href="route('branches.index')" icon="building" :active="request()->routeIs('branches.*')">Filiallar</x-nav-link>
-            <x-nav-link :href="route('system-status.index')" icon="cog" :active="request()->routeIs('system-status.*')">Tizim holati</x-nav-link>
-            <x-nav-link :href="route('notifications.index')" icon="bell" :active="request()->routeIs('notifications.*')">Bildirishnomalar</x-nav-link>
-            <x-nav-link :href="route('app-version.edit')" icon="phone" :active="request()->routeIs('app-version.*')">Ilova versiyasi</x-nav-link>            
-        @endif
-        @can('audit.view')
-            <x-nav-link :href="route('audit.index')" icon="log" :active="request()->routeIs('audit.*')">Harakatlar jurnali</x-nav-link>
-            <x-nav-link href="{{ route('docs.index') }}" icon="book" target="_blank">API hujjati</x-nav-link>
-        @endcan
+        @include('partials.sidebar-nav', ['me' => $me])
     </nav>
     <div class="border-t border-ink-100 p-3 dark:border-ink-800">
         <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 rounded-xl p-2 hover:bg-ink-50 dark:hover:bg-ink-800">
@@ -111,12 +55,12 @@
 
         <div class="flex-1"></div>
 
-        @if ($me->isSuperAdmin())
+        @if ($me->isSuperAdmin() || $multiBranch)
             <form method="POST" action="{{ route('branches.switch') }}" class="flex items-center gap-2">
                 @csrf
                 <x-icon name="building" class="hidden h-5 w-5 text-ink-400 sm:block" />
                 <select name="branch_id" onchange="this.form.submit()" class="input w-44 py-2 sm:w-56" aria-label="Filial">
-                    <option value="">Barcha filiallar</option>
+                    @if ($me->isSuperAdmin())<option value="">Barcha filiallar</option>@endif
                     @foreach ($branches as $b)
                         <option value="{{ $b->id }}" @selected($selectedBranch === $b->id)>{{ $b->name }}@if (! $b->isActive()) (arxiv)@endif</option>
                     @endforeach
@@ -124,6 +68,10 @@
             </form>
         @else
             <span class="badge-red hidden sm:inline-flex"><x-icon name="building" class="h-3.5 w-3.5" /> {{ $me->branch?->name }}</span>
+        @endif
+
+        @if ($me->can('students.notes'))
+            <x-notes-bell :count="\App\Models\StudentNote::active()->count()" />
         @endif
 
         <button class="btn-ghost p-2" @click="$store.theme.toggle()" aria-label="Rejimni almashtirish">

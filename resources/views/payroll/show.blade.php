@@ -32,6 +32,42 @@
         </div>
     @endif
 
+    @if ($activity)
+        @php($fm = fn ($n) => \App\Support\Format::money($n, false))
+        <div class="card mb-6 overflow-hidden">
+            <div class="flex flex-wrap items-center justify-between gap-3 px-5 pt-5 sm:px-6">
+                <div>
+                    <h2 class="text-lg font-semibold text-ink-900 dark:text-white">Faoliyat statistikasi</h2>
+                    <p class="text-sm text-ink-500">Qabul qilgan to'lovlari (storno qilinganlarsiz), qo'shgan murojaatlari va o'quvchilari.</p>
+                </div>
+                <div class="flex gap-1 text-xs font-semibold">
+                    <a href="{{ route('payroll.show', ['user' => $person, 'act' => 'day']) }}" class="rounded-lg px-3 py-1.5 {{ $act === 'day' ? 'bg-brand-600 text-white' : 'bg-ink-100 text-ink-600 dark:bg-ink-800 dark:text-ink-300' }}">Kunlik (30 kun)</a>
+                    <a href="{{ route('payroll.show', ['user' => $person, 'act' => 'month']) }}" class="rounded-lg px-3 py-1.5 {{ $act === 'month' ? 'bg-brand-600 text-white' : 'bg-ink-100 text-ink-600 dark:bg-ink-800 dark:text-ink-300' }}">Oylik (12 oy)</a>
+                </div>
+            </div>
+            <div class="mt-4 grid gap-3 px-5 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
+                <div class="rounded-xl bg-ink-50 p-3 dark:bg-ink-800/50"><div class="text-xs text-ink-500">Qabul qilgan summa</div><div class="text-lg font-bold">{{ $fm($activity['totals']['total']) }}</div></div>
+                <div class="rounded-xl bg-ink-50 p-3 dark:bg-ink-800/50"><div class="text-xs text-ink-500">To'lovlar soni</div><div class="text-lg font-bold">{{ $activity['totals']['payments'] }}</div></div>
+                <div class="rounded-xl bg-ink-50 p-3 dark:bg-ink-800/50"><div class="text-xs text-ink-500">Murojaatlar (qabul qilingan)</div><div class="text-lg font-bold">{{ $activity['totals']['leads'] }} ({{ $activity['totals']['converted'] }})</div></div>
+                <div class="rounded-xl bg-ink-50 p-3 dark:bg-ink-800/50"><div class="text-xs text-ink-500">Yangi o'quvchilar</div><div class="text-lg font-bold">{{ $activity['totals']['students'] }}</div></div>
+            </div>
+            <div class="table-wrap mt-4 max-h-96 overflow-y-auto">
+                <table class="table">
+                    <thead><tr><th>{{ $act === 'month' ? 'Oy' : 'Kun' }}</th><th class="text-right">To'lovlar</th><th class="text-right">Naqt</th><th class="text-right">Plastik</th><th class="text-right">Jami</th><th class="text-right">Murojaat</th><th class="text-right">Qabul</th><th class="text-right">Izoh</th><th class="text-right">O'quvchi</th></tr></thead>
+                    <tbody>
+                    @foreach (array_reverse($activity['rows']) as $r)
+                        <tr class="{{ $r['payments'] + $r['leads'] + $r['notes'] + $r['students'] === 0 ? 'text-ink-300' : '' }}">
+                            <td class="whitespace-nowrap">{{ $r['label'] }}</td><td class="text-right">{{ $r['payments'] }}</td>
+                            <td class="text-right">{{ $fm($r['cash']) }}</td><td class="text-right">{{ $fm($r['card']) }}</td><td class="text-right font-semibold">{{ $fm($r['total']) }}</td>
+                            <td class="text-right">{{ $r['leads'] }}</td><td class="text-right">{{ $r['converted'] }}</td><td class="text-right">{{ $r['notes'] }}</td><td class="text-right">{{ $r['students'] }}</td>
+                        </tr>
+                    @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    @endif
+
     <div class="mt-6 grid gap-6 lg:grid-cols-3">
         @if ($canPay)
             <form method="POST" action="{{ route('payroll.pay', $person) }}" class="card card-body h-fit space-y-4">

@@ -74,7 +74,7 @@ class ConfirmationController extends Controller
     {
         $recipient = User::visibleToContext()->findOrFail($p['user_id']);
         $isTeacher = $recipient->role === Role::Teacher;
-        abort_unless(in_array($recipient->role, [Role::Teacher, Role::Admin, Role::Manager], true), 404);
+        abort_unless(in_array($recipient->role, [Role::Teacher, Role::Admin, Role::Manager, Role::Operator], true), 404);
         $this->authorize($isTeacher ? 'teachers.pay' : 'staff.pay');
 
         $method = PayMethod::from($p['method']);

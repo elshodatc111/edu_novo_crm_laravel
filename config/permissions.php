@@ -60,6 +60,8 @@ return [
                 'payments.create' => ['label' => "To'lov qabul qilish", 'roles' => $staff],
                 'payments.discount' => ['label' => "Chegirma berish", 'roles' => $staff],
                 'payments.refund' => ['label' => "To'lovni qaytarish", 'roles' => $staff],
+                // v13: to'lovlar sahifasidagi umumiy yig'indilar (naqt, plastik, chegirma, qaytarilgan) alohida ruxsat bilan ko'rinadi
+                'payments.view_totals' => ['label' => "To'lovlarning umumiy yig'indisini ko'rish", 'roles' => $staff],
                 'payments.reverse' => ['label' => "To'lov/chegirmani storno qilish (xato yozuvni bekor qilish)", 'roles' => ['admin']],
             ],
         ],
@@ -68,7 +70,9 @@ return [
             'label' => 'Kassa',
             'items' => [
                 'cashbox.view' => ['label' => "Kassani ko'rish", 'roles' => $staff],
-                'cashbox.request' => ['label' => "Chiqim va xarajat so'rovi yaratish", 'roles' => $staff],
+                // v13: ikkita alohida ruxsat. `cashbox.request` - XARAJAT (sarflangan pul), `cashbox.withdraw` - CHIQIM (moliya balansiga o'tkazish)
+                'cashbox.request' => ['label' => "Xarajat so'rovi yaratish (sarflangan pul)", 'roles' => $staff],
+                'cashbox.withdraw' => ['label' => "Chiqim so'rovi yaratish (pulni moliya balansiga o'tkazish)", 'roles' => $staff],
                 'cashbox.history' => ['label' => "Kassaning so'nggi 30 kunlik tarixini ko'rish", 'roles' => ['admin']],
                 'cashbox.approve' => ['label' => "Chiqim va xarajatni tasdiqlash", 'roles' => ['admin']],
                 'cashbox.close' => ['label' => "Kassa smenasini yopish (kutilgan/haqiqiy naqtni solishtirish)", 'roles' => ['admin']],

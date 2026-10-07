@@ -41,7 +41,10 @@ class StaffRequest extends FormRequest
             'email' => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($target?->id)],
             'phone' => ['required', 'string', new UzPhone, new UniquePhonePerRole(
                 $branchId,
-                $target?->role ?? (Role::tryFrom((string) $this->input('role')) ?? Role::Manager),
+                // v13: lavozim o'zgarayotgan bo'lsa, telefon yangi lavozimda takrorlanmasligi tekshiriladi
+                $creating
+                    ? (Role::tryFrom((string) $this->input('role')) ?? Role::Manager)
+                    : (Role::tryFrom((string) $this->input('role')) ?? $target->role),
                 $target?->id,
             )],
             'birthday' => ['nullable', 'date', 'before:today'],
@@ -49,6 +52,21 @@ class StaffRequest extends FormRequest
             'status' => ['required', Rule::enum(UserStatus::class)],
             'password' => [$creating ? 'required' : 'nullable', 'confirmed', Password::min(8)],
         ];
+
+        // v13: operatorga qo'shimcha filiallar - faqat sAdmin belgilaydi
+        if ($this->user()->isSuperAdmin()) {
+            $rules['extra_branches'] = ['nullable', 'array'];
+            $rules['extra_branches.*'] = ['integer', Rule::exists('branches', 'id')->where('status', 'active')];
+            $rules['extra_branches_form'] = ['nullable'];
+        } else {
+            $rules['extra_branches'] = ['prohibited'];
+        }
+
+        if (! $creating) {
+            // v13: lavozimni o'zgartirish (ixtiyoriy). Hozirgi lavozim har doim ruxsat etiladi (o'zgarmaydi).
+            $changeable = array_map(fn (Role $r) => $r->value, UserPolicy::assignableRoles($this->user(), $target));
+            $rules['role'] = ['nullable', Rule::in([...$changeable, $target->role->value])];
+        }
 
         if ($creating) {
             $allowedRoles = collect(UserPolicy::manageableRoles($this->user()))
@@ -80,6 +98,7 @@ class StaffRequest extends FormRequest
             'password' => 'Parol',
             'role' => 'Lavozim',
             'branch_id' => 'Filial',
+            'extra_branches' => "Qo'shimcha filiallar",
         ];
     }
 }

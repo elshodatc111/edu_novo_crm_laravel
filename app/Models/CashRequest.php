@@ -40,6 +40,17 @@ class CashRequest extends Model
         return $this->belongsTo(User::class, 'decided_by');
     }
 
+    /** v13: so'rov turi uchun kerakli ruxsat: chiqim - `cashbox.withdraw`, xarajat - `cashbox.request`. */
+    public static function permissionFor(string $kind): string
+    {
+        return $kind === self::WITHDRAWAL ? 'cashbox.withdraw' : 'cashbox.request';
+    }
+
+    public function permission(): string
+    {
+        return self::permissionFor($this->kind);
+    }
+
     public function kindLabel(): string
     {
         return $this->kind === self::WITHDRAWAL ? 'Chiqim (moliyaga)' : 'Xarajat';

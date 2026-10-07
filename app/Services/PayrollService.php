@@ -74,7 +74,7 @@ class PayrollService
 
     public function payStaff(User $staff, PayMethod $method, int $amount, ?string $description, User $actor): Payout
     {
-        if (! in_array($staff->role, [Role::Admin, Role::Manager], true)) {
+        if (! in_array($staff->role, [Role::Admin, Role::Manager, Role::Operator], true)) {
             throw ValidationException::withMessages(['recipient' => "Bu foydalanuvchi hodim emas."]);
         }
 

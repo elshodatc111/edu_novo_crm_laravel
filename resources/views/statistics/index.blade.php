@@ -48,6 +48,31 @@
 
     {{-- Dashboardlar: har birida "Grafik / Jadval" almashtirgichi bor --}}
     @if ($showMoney)
+        <div class="mt-6 grid gap-4 sm:grid-cols-3">
+            @foreach (['today' => 'Bugun', 'week' => 'Shu hafta', 'month' => 'Shu oy'] as $k => $lbl)
+                @php($sn = $snapshot[$k])
+                <div class="card card-body">
+                    <div class="text-sm text-ink-500">{{ $lbl }} — sof tushum</div>
+                    <div class="mt-1 text-2xl font-bold text-ink-900 dark:text-white">{{ $m($sn['net']) }}</div>
+                    <div class="mt-1 text-xs text-ink-400">
+                        {{ $sn['count'] }} ta to'lov · avvalgi shu muddat: {{ $m($sn['previous']) }}
+                        @if ($sn['change'] !== null)
+                            <span class="{{ $sn['change'] >= 0 ? 'text-emerald-600' : 'text-brand-600' }} font-semibold">{{ $sn['change'] > 0 ? '+' : '' }}{{ $sn['change'] }}%</span>
+                        @endif
+                    </div>
+                </div>
+            @endforeach
+        </div>
+
+        <div class="mt-6">
+            <div class="mb-3 flex items-center gap-1 text-xs font-semibold">
+                @foreach (['day' => 'Kunlar (30 kun)', 'week' => 'Haftalar (12 hafta)', 'month' => 'Oylar (12 oy)'] as $k => $lbl)
+                    <a href="{{ request()->fullUrlWithQuery(['dyn' => $k]) }}" class="rounded-lg px-3 py-1.5 {{ $dyn === $k ? 'bg-brand-600 text-white' : 'bg-ink-100 text-ink-600 dark:bg-ink-800 dark:text-ink-300' }}">{{ $lbl }}</a>
+                @endforeach
+            </div>
+            <x-dash.card title="Tushum dinamikasi (aniq)" :subtitle="'O\'rtacha sof tushum: '.$m($charts['dynamics_average']).' · davr tanlovidan mustaqil'" :spec="$charts['dynamics']" :table="$charts['dynamics_table']" />
+        </div>
+
         <div class="mt-6 grid gap-6 lg:grid-cols-3">
             <x-dash.card class="lg:col-span-2" title="Tushum dinamikasi" :subtitle="($charts['income_unit'] === 'day' ? 'Kunlar' : 'Oylar').' bo\'yicha: naqt va plastik ('.$from->format('d.m.Y').' – '.$to->format('d.m.Y').')'" :spec="$charts['income']" />
             <x-dash.card title="To'lov usuli" subtitle="Tanlangan davr tushumi: naqt va plastik ulushi" :spec="$charts['method']" />

@@ -106,4 +106,77 @@ Alpine.data('confirmForm', (title = 'Tasdiqlaysizmi?') => ({
     },
 }));
 
+/* Yon menyu bo'limlari: yig'iladi/ochiladi, holati brauzerda saqlanadi (faol sahifaning bo'limi doim ochiq) */
+Alpine.data('navGroup', (key, hasActive = false) => ({
+    open: hasActive,
+    init() {
+        if (hasActive) return;
+        try { this.open = localStorage.getItem('nav:' + key) === '1'; } catch (e) {}
+    },
+    toggle() {
+        this.open = !this.open;
+        try { localStorage.setItem('nav:' + key, this.open ? '1' : '0'); } catch (e) {}
+    },
+}));
+
+/* Eslatmalar qo'ng'iroqchasi: har 15 soniyada faol eslatmalar sonini yangilaydi (WebSocket kerak emas) */
+Alpine.data('notesBell', (initialCount = 0, urls = {}) => ({
+    count: initialCount,
+    open: false,
+    tab: 'active',
+    items: [],
+    loading: false,
+    error: false,
+    showBranch: false,
+    init() {
+        setInterval(() => { if (!document.hidden) this.refresh(this.open); }, 15000);
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) this.refresh(this.open); });
+    },
+    async refresh(withList = false) {
+        try {
+            const r = await fetch(urls.feed + '?status=' + this.tab, {
+                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin',
+            });
+            if (!r.ok) throw new Error('feed');
+            const d = await r.json();
+            this.count = d.count;
+            if (withList) { this.items = d.items; this.showBranch = d.show_branch; }
+            this.error = false;
+        } catch (e) {
+            this.error = true;
+        }
+    },
+    toggle() {
+        this.open = !this.open;
+        if (this.open) { this.loading = true; this.refresh(true).finally(() => { this.loading = false; }); }
+    },
+    setTab(tab) {
+        this.tab = tab;
+        this.items = [];
+        this.loading = true;
+        this.refresh(true).finally(() => { this.loading = false; });
+    },
+    async act(item) {
+        const url = (this.tab === 'closed' ? urls.reopen : urls.close).replace('__ID__', item.id);
+        try {
+            const r = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                },
+                credentials: 'same-origin',
+            });
+            if (!r.ok) throw new Error('act');
+            const d = await r.json();
+            this.count = d.count;
+            this.items = this.items.filter((i) => i.id !== item.id);
+        } catch (e) {
+            this.error = true;
+        }
+    },
+}));
+
 Alpine.start();

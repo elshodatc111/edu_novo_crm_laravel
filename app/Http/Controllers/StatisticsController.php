@@ -24,6 +24,25 @@ class StatisticsController extends Controller
         $trend = $stats->trend(12);
         $charts = $this->charts($stats, $from, $to, $o, $trend, $showMoney, $showFinance);
 
+        // v13: kunlik / haftalik / oylik tushum dinamikasi (tanlangan davrga bog'liq emas) va "bugun/hafta/oy" solishtiruvi
+        $dyn = in_array(SafeInput::string($request->input('dyn')), ['day', 'week', 'month'], true) ? SafeInput::string($request->input('dyn')) : 'day';
+        $snapshot = [];
+        if ($showMoney) {
+            $d = $stats->incomeDynamics($dyn);
+            $charts['dynamics'] = Viz::column(array_column($d['rows'], 'label'), [
+                ['label' => 'Naqt', 'data' => array_column($d['rows'], 'cash'), 'slot' => 1],
+                ['label' => 'Plastik', 'data' => array_column($d['rows'], 'card'), 'slot' => 2],
+            ], 'money', stacked: true, nameColumn: ['day' => 'Kun', 'week' => 'Hafta', 'month' => 'Oy'][$dyn]);
+            $mm = fn ($v) => Viz::format('money', $v);
+            $charts['dynamics_table'] = [
+                'columns' => [['day' => 'Kun', 'week' => 'Hafta', 'month' => 'Oy'][$dyn], 'Naqt', 'Plastik', 'Qaytarilgan', 'Sof tushum', "To'lovlar", "O'zgarish"],
+                'rows' => array_map(fn ($r) => [$r['label'], $mm($r['cash']), $mm($r['card']), $mm($r['refunds']), $mm($r['net']), (string) $r['count'], $r['change'] === null ? '—' : ($r['change'] > 0 ? '+' : '').$r['change'].'%'], array_reverse($d['rows'])),
+                'foot' => ['Jami', $mm($d['totals']['cash']), $mm($d['totals']['card']), $mm($d['totals']['refunds']), $mm($d['totals']['net']), (string) $d['totals']['count'], ''],
+            ];
+            $charts['dynamics_average'] = $d['average'];
+            $snapshot = $stats->incomeSnapshot();
+        }
+
         $comparison = $user->isSuperAdmin() && BranchContext::id() === null ? $stats->branchComparison($from, $to) : [];
         if ($comparison && $showMoney) {
             $charts['branches'] = Viz::column(array_column($comparison, 'branch'), [
@@ -37,7 +56,7 @@ class StatisticsController extends Controller
 
         return view('statistics.index', [
             'from' => $from, 'to' => $to, 'o' => $o, 'trend' => $trend, 'charts' => $charts,
-            'comparison' => $comparison, 'showMoney' => $showMoney, 'showFinance' => $showFinance,
+            'dyn' => $dyn, 'snapshot' => $snapshot, 'comparison' => $comparison, 'showMoney' => $showMoney, 'showFinance' => $showFinance,
         ]);
     }
 

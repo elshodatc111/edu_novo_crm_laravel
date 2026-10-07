@@ -60,6 +60,24 @@ class UserPolicy
             && $actor->branch_id === $target->branch_id;
     }
 
+    /** v13: hodim qaysi lavozimlarga o'tkazilishi mumkin (hozirgi lavozimidan boshqa). Bo'sh - o'zgartirib bo'lmaydi. */
+    public static function assignableRoles(User $actor, User $target): array
+    {
+        if (! (new self)->manage($actor, $target)) {
+            return [];
+        }
+
+        return array_values(array_filter(
+            self::manageableRoles($actor),
+            fn (Role $r) => $r !== $target->role,
+        ));
+    }
+
+    public function changeRole(User $actor, User $target, Role $newRole): bool
+    {
+        return in_array($newRole, self::assignableRoles($actor, $target), true);
+    }
+
     public function assignPermissions(User $actor, User $target): bool
     {
         if ($actor->is($target) || ! $target->role->hasConfigurablePermissions()) {

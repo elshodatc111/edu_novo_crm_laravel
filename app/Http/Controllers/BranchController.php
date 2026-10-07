@@ -120,6 +120,15 @@ class BranchController extends Controller
     public function switch(Request $request): RedirectResponse
     {
         $data = $request->validate(['branch_id' => ['nullable', 'integer', 'exists:branches,id']]);
+        $user = $request->user();
+
+        if (! $user->isSuperAdmin()) {
+            // v13: faqat qo'shimcha filial berilgan operator, faqat o'ziga ruxsat etilgan filiallarga o'ta oladi
+            abort_unless($user->role === \App\Enums\Role::Operator && BranchContext::extraBranchIds($user) !== [], 403);
+            $id = (int) ($data['branch_id'] ?? $user->branch_id);
+            abort_unless(in_array($id, BranchContext::accessibleBranchIds($user), true), 403);
+            $data['branch_id'] = $id;
+        }
 
         BranchContext::select($data['branch_id'] ?? null);
 

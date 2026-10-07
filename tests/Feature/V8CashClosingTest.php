@@ -30,7 +30,7 @@ class V8CashClosingTest extends TestCase
 
         $this->branch = $this->branch();
         $this->admin = $this->user(Role::Admin, $this->branch, [
-            'cashbox.view', 'cashbox.request', 'cashbox.approve', 'cashbox.close', 'settings.branch',
+            'cashbox.view', 'cashbox.request', 'cashbox.withdraw', 'cashbox.approve', 'cashbox.close', 'settings.branch',
         ]);
     }
 

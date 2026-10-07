@@ -58,7 +58,7 @@ class V11StaffMobileApiTest extends TestCase
     public function test_cashbox_request_and_approve_flow(): void
     {
         $branch = $this->branch();
-        $operator = $this->user(Role::Operator, $branch, ['cashbox.request']);
+        $operator = $this->user(Role::Operator, $branch, ['cashbox.request', 'cashbox.withdraw']);
         $admin = $this->user(Role::Admin, $branch, ['cashbox.approve', 'cashbox.view', 'cashbox.history']);
         $this->fund($branch, Wallet::TillCash, 200000);
 
