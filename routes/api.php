@@ -52,6 +52,8 @@ Route::prefix('v1')->group(function () {
         Route::get('students/{student}', [StudentController::class, 'show']);
         Route::post('students/{student}/payments', [StudentController::class, 'pay'])->middleware('once');
         Route::get('statistics/overview', [StatisticsController::class, 'overview']);
+        // v13: statistika grafiklari (tushum dinamikasi, top guruhlar, kurslar, qarzdorlar, davomad, voronka)
+        Route::get('statistics/charts', [StatisticsController::class, 'charts']);
 
         Route::get('books', [CourseController::class, 'books']);
         Route::get('courses', [CourseController::class, 'index']);
