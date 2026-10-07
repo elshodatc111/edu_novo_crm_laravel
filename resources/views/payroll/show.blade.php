@@ -33,7 +33,7 @@
     @endif
 
     @if ($activity)
-        @php($fm = fn ($n) => \App\Support\Format::money($n, false))
+        @php $fm = fn ($n) => \App\Support\Format::money($n, false); @endphp
         <div class="card mb-6 overflow-hidden">
             <div class="flex flex-wrap items-center justify-between gap-3 px-5 pt-5 sm:px-6">
                 <div>

@@ -50,7 +50,7 @@
     @if ($showMoney)
         <div class="mt-6 grid gap-4 sm:grid-cols-3">
             @foreach (['today' => 'Bugun', 'week' => 'Shu hafta', 'month' => 'Shu oy'] as $k => $lbl)
-                @php($sn = $snapshot[$k])
+                @php $sn = $snapshot[$k]; @endphp
                 <div class="card card-body">
                     <div class="text-sm text-ink-500">{{ $lbl }} — sof tushum</div>
                     <div class="mt-1 text-2xl font-bold text-ink-900 dark:text-white">{{ $m($sn['net']) }}</div>
