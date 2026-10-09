@@ -74,4 +74,26 @@ abstract class TestCase extends BaseTestCase
 
         return $user;
     }
+
+    /**
+     * Sinov uchun RSA kalit (PEM). Windows/XAMPP'da OpenSSL sozlama fayli topilmasa, odatiy joylar sinab ko'riladi.
+     */
+    protected function makeRsaPrivateKeyPem(): string
+    {
+        $base = ['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA];
+        $configs = [null, getenv('OPENSSL_CONF') ?: null, dirname(PHP_BINARY).'/extras/ssl/openssl.cnf', 'C:/xampp/php/extras/ssl/openssl.cnf', 'C:/xampp/apache/conf/openssl.cnf'];
+
+        foreach ($configs as $cnf) {
+            if ($cnf !== null && ! is_file($cnf)) {
+                continue;
+            }
+            $opts = $cnf === null ? $base : $base + ['config' => $cnf];
+            $key = @openssl_pkey_new($opts);
+            if ($key !== false && @openssl_pkey_export($key, $pem, null, $cnf === null ? [] : ['config' => $cnf])) {
+                return $pem;
+            }
+        }
+
+        $this->markTestSkipped("OpenSSL kalit yarata olmadi (openssl.cnf topilmadi): OPENSSL_CONF o'zgaruvchisini sozlang.");
+    }
 }

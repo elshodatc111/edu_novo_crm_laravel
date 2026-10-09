@@ -87,14 +87,30 @@ class GroupController extends Controller
     {
         $this->authorize('update', $group);
 
-        return view('groups.edit', ['group' => $group] + $this->formData());
+        $locked = $this->groups->lockedDays($group);
+
+        return view('groups.edit', [
+            'group' => $group,
+            'lockedCount' => $locked->count(),
+            'groupStatus' => $group->status,
+            'lockedUntil' => $locked->last()?->date,
+            'membersCount' => $group->activeMembers()->count(),
+            'canChangePrice' => auth()->user()->can('groups.change_price'),
+        ] + $this->formData());
     }
 
     public function update(GroupUpdateRequest $request, Group $group): RedirectResponse
     {
         $this->authorize('update', $group);
 
-        $this->groups->update($group, $request->validated());
+        $data = $request->validated();
+
+        // Narx rejasini faqat `groups.change_price` ruxsati bor foydalanuvchi o'zgartira oladi
+        if (! $request->user()->can('groups.change_price')) {
+            unset($data['price_plan_id'], $data['confirm_price_change']);
+        }
+
+        $this->groups->update($group, $data, $request->user());
 
         return redirect()->route('groups.show', $group)->with('success', "Guruh ma'lumotlari yangilandi.");
     }

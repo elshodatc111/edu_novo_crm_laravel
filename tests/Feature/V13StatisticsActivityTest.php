@@ -102,7 +102,7 @@ class V13StatisticsActivityTest extends TestCase
     public function test_payroll_card_shows_activity_for_staff_but_not_teacher(): void
     {
         $b = $this->branch('A');
-        $admin = $this->user(Role::Admin, $b);
+        $admin = $this->user(Role::Admin, $b, ['staff.view', 'teachers.view']);
         $op = $this->user(Role::Operator, $b);
         $teacher = $this->user(Role::Teacher, $b);
 

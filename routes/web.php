@@ -198,6 +198,7 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
     Route::post('students/{student}/payments', [PaymentController::class, 'store'])->middleware('once')->name('payments.store');
     Route::post('students/{student}/discount', [PaymentController::class, 'discount'])->middleware('once')->name('payments.discount');
+    Route::post('students/{student}/special-discount', [PaymentController::class, 'specialDiscountInitiate'])->name('payments.special-discount');
     Route::post('students/{student}/refund', [PaymentController::class, 'refund'])->middleware('once')->name('payments.refund');
     Route::post('payments/{payment}/reverse', [PaymentController::class, 'reverseInitiate'])->name('payments.reverse');
     Route::get('payments/{payment}/receipt', [PaymentController::class, 'receipt'])->name('payments.receipt');

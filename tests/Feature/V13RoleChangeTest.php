@@ -63,7 +63,8 @@ class V13RoleChangeTest extends TestCase
         $branch = $this->branch();
         $admin = $this->user(Role::Admin, $branch, ['staff.view', 'staff.manage'], ['phone' => '+998 90 400 5060']);
 
-        $this->actingAs($admin)->put("/staff/{$admin->id}", $this->payload($admin, ['role' => 'manager']))->assertForbidden();
+        $this->actingAs($admin)->put("/staff/{$admin->id}", $this->payload($admin, ['role' => 'manager']))->assertSessionHasErrors('role');
+        $this->assertSame(Role::Admin, $admin->fresh()->role);
     }
 
     public function test_teacher_with_running_group_cannot_change_role(): void

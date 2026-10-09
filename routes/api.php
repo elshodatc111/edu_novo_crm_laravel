@@ -88,10 +88,13 @@ Route::prefix('v1')->group(function () {
         Route::post('cashbox/requests/{cashRequest}/approve', [CashboxController::class, 'approve']);
         Route::post('cashbox/requests/{cashRequest}/cancel', [CashboxController::class, 'cancel']);
 
-        // v11: Moliya - faqat ko'rish + shaxsiy mablag' kiritish (chiqim ataylab veb-only)
+        // v11: Moliya - ko'rish + shaxsiy mablag' kiritish; v13: chiqimlar ikki bosqichli
         // v12 A: GET ham 'branch' bilan (yuqoridagi kabi)
         Route::get('finance/overview', [FinanceController::class, 'overview'])->middleware('branch');
         Route::post('finance/deposit', [FinanceController::class, 'deposit'])->middleware(['once', 'branch']);
+        // v13: chiqim/xarajat/ehson chiqimi - IKKI BOSQICHLI (preview -> confirm + foydalanuvchi paroli)
+        Route::post('finance/outflow/preview', [FinanceController::class, 'outflowPreview'])->middleware(['branch', 'throttle:30,1']);
+        Route::post('finance/outflow/confirm', [FinanceController::class, 'outflowConfirm'])->middleware(['once', 'branch', 'throttle:20,1']);
 
         // v11: Hodimlar - ish haqi TO'LASH ataylab veb-only (ikki bosqichli tasdiqlash)
         // v12 B: staff qo'shish endi ham 'branch' (X-Branch-Id) orqali - body'dagi branch_id endi API'da kerak emas

@@ -5,10 +5,11 @@
         'pay' => $me->can('payments.create') ? "To'lov qabul qilish" : null,
         'discount' => $me->can('payments.discount') ? 'Chegirma' : null,
         'refund' => $me->can('payments.refund') ? "To'lovni qaytarish" : null,
+        'special' => $me->isSuperAdmin() ? 'Maxsus chegirma' : null,
     ]);
     $first = array_key_first($tabs);
 @endphp
-<div class="card mt-6 overflow-hidden" x-data="{ tab: '{{ $errors->has('discount') || $errors->has('group_id') && old('amount') ? 'discount' : ($errors->has('amount') && old('method') ? 'refund' : $first) }}' }">
+<div class="card mt-6 overflow-hidden" x-data="{ tab: '{{ $errors->has('special_amount') || $errors->has('special_description') ? 'special' : ($errors->has('discount') || $errors->has('group_id') && old('amount') ? 'discount' : ($errors->has('amount') && old('method') ? 'refund' : $first)) }}' }">
     <div class="flex gap-1 overflow-x-auto border-b border-ink-100 p-2 dark:border-ink-800">
         @foreach ($tabs as $k => $label)
             <button type="button" @click="tab = '{{ $k }}'" :class="tab === '{{ $k }}' ? 'bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300' : 'text-ink-600 dark:text-ink-300'" class="whitespace-nowrap rounded-lg px-3.5 py-2 text-sm font-semibold">{{ $label }}</button>
@@ -71,6 +72,20 @@
             <div class="sm:col-span-2"><button type="button" @click="review($event)" class="btn-primary">Qaytarish</button></div>
         </form>
         <x-money-confirm />
+        </div>
+    @endif
+    @if (isset($tabs['special']))
+        <div x-show="tab === 'special'" x-cloak>
+        <form method="POST" action="{{ route('payments.special-discount', $student) }}" class="grid gap-4 p-5 sm:grid-cols-2 sm:p-6">
+            @csrf
+            <div class="rounded-xl bg-amber-50 p-3 text-xs text-amber-900 dark:bg-amber-950/40 dark:text-amber-200 sm:col-span-2">
+                Bu chegirma guruhga bog'lanmaydi va narx rejasidagi chegara bilan cheklanmaydi: summa to'g'ridan-to'g'ri o'quvchi balansiga qo'shiladi (kassadan pul chiqmaydi, SMS yuborilmaydi).
+                Bitta chegirma <b>{{ \App\Support\Format::money(\App\Services\PaymentService::MAX_SPECIAL_DISCOUNT) }}</b> dan oshmasligi kerak. Tasdiqlash uchun parolingiz so'raladi.
+            </div>
+            <x-input name="special_amount" money label="Chegirma summasi (so'm)" required />
+            <x-input name="special_description" label="Sabab (masalan, kam ta'minlangan oila)" required />
+            <div class="sm:col-span-2"><button class="btn-primary">Davom etish (tekshirish)</button></div>
+        </form>
         </div>
     @endif
 </div>

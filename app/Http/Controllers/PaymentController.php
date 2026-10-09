@@ -90,6 +90,38 @@ class PaymentController extends Controller
         return back()->with('success', 'Chegirma berildi.');
     }
 
+    /** v13.2 (1-bosqich): faqat sAdmin. Summani tekshiradi va «Tekshiring» sahifasiga (parol bilan tasdiq) yo'naltiradi. */
+    public function specialDiscountInitiate(Request $request, User $student, ConfirmationService $confirm): RedirectResponse
+    {
+        abort_unless($request->user()->isSuperAdmin(), 403);
+
+        $data = $request->validate([
+            'special_amount' => ['required', 'integer', 'min:1', 'max:'.PaymentService::MAX_SPECIAL_DISCOUNT],
+            'special_description' => ['required', 'string', 'max:255'],
+        ], [
+            'special_amount.max' => "Maxsus chegirma ".Format::money(PaymentService::MAX_SPECIAL_DISCOUNT)." dan oshmasligi kerak.",
+        ], ['special_amount' => 'Chegirma summasi', 'special_description' => 'Sabab']);
+
+        $before = (int) $student->balance;
+        $amount = (int) $data['special_amount'];
+
+        $token = $confirm->stash(
+            'payment.special_discount',
+            ['student_id' => $student->id, 'amount' => $amount, 'description' => $data['special_description']],
+            'Maxsus chegirma (balansga bonus)',
+            [
+                ["O'quvchi", $student->name],
+                ['Summa', Format::money($amount)],
+                ['Sabab', $data['special_description']],
+            ],
+            route('students.show', $student),
+            ['label' => "O'quvchi balansi", 'before' => $before, 'after' => $before + $amount],
+            "Bu chegirma o'quvchi balansiga to'g'ridan-to'g'ri qo'shiladi. Tasdiqlash uchun parolingizni kiriting.",
+        );
+
+        return redirect()->route('confirm.show', $token);
+    }
+
     public function refund(Request $request, User $student): RedirectResponse
     {
         $this->authorize('payments.refund');

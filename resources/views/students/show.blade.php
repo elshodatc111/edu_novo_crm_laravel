@@ -50,7 +50,7 @@
         </div>
     </div>
 
-    @if (! $student->archived_at && auth()->user()->canany(['payments.create', 'payments.discount', 'payments.refund']))
+    @if (! $student->archived_at && auth()->user()->canany(['payments.create', 'payments.discount', 'payments.refund']) || auth()->user()->isSuperAdmin())
         @include('students._money')
     @endif
 

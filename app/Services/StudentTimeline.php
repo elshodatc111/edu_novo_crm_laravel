@@ -41,7 +41,7 @@ class StudentTimeline
                     'reversed' => (bool) $payment?->reversed_at,
                     'tone' => match ($t->type) {
                         BalanceTransaction::PAYMENT, BalanceTransaction::REFUND, BalanceTransaction::OPENING, BalanceTransaction::PAYMENT_REFUND_REJECTED => 'green',
-                        BalanceTransaction::DISCOUNT, BalanceTransaction::MANUAL_DISCOUNT, BalanceTransaction::CAMPAIGN_BONUS => 'amber',
+                        BalanceTransaction::DISCOUNT, BalanceTransaction::MANUAL_DISCOUNT, BalanceTransaction::SPECIAL_DISCOUNT, BalanceTransaction::CAMPAIGN_BONUS => 'amber',
                         default => 'red',
                     },
                 ];

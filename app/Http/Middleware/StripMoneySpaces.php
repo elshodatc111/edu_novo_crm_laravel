@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Response;
 class StripMoneySpaces
 {
     private const FIELDS = [
-        'cash', 'card', 'amount', 'bonus', 'early_discount', 'max_discount', 'fine',
+        'cash', 'card', 'amount', 'special_amount', 'bonus', 'early_discount', 'max_discount', 'fine',
         'teacher_rate', 'teacher_bonus_rate', 'balance',
     ];
 

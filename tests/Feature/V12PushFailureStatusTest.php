@@ -82,8 +82,7 @@ class V12PushFailureStatusTest extends TestCase
     private function fakeServiceAccountPath(): string
     {
         $path = sys_get_temp_dir().'/fcm_test_'.uniqid().'.json';
-        $privateKey = openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]);
-        openssl_pkey_export($privateKey, $pem);
+        $pem = $this->makeRsaPrivateKeyPem();
 
         file_put_contents($path, json_encode(['client_email' => 'test@example.com', 'private_key' => $pem]));
 

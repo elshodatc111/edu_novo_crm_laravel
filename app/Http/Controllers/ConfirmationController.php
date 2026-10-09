@@ -16,6 +16,8 @@ use App\Services\SmsService;
 use App\Support\BranchContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 
 /** Ikki bosqichli tasdiqlash: «Tekshiring» sahifasi va amalni bajarish. */
@@ -34,8 +36,32 @@ class ConfirmationController extends Controller
         return view('confirm.show', ['token' => $token, 'item' => $item]);
     }
 
+    /** Parol bilan tasdiqlanadigan amallar (brauzer ochiq qolsa, boshqa odam bajara olmasligi uchun). */
+    public const PASSWORD_KINDS = ['payment.special_discount'];
+
     public function store(Request $request, string $token, FinanceService $finance, PayrollService $payroll, PaymentService $payments, SmsService $sms): RedirectResponse
     {
+        $pending = $this->confirmations->peek($token);
+
+        if ($pending && in_array($pending['kind'], self::PASSWORD_KINDS, true)) {
+            $request->validate(['password' => ['required', 'string', 'max:255']], [], ['password' => 'Parol']);
+
+            $rateKey = 'confirm-password:'.$request->user()->id;
+            if (RateLimiter::tooManyAttempts($rateKey, 5)) {
+                $minutes = (int) ceil(RateLimiter::availableIn($rateKey) / 60);
+
+                return back()->withErrors(['password' => "Urinishlar ko'p. {$minutes} daqiqadan keyin qayta urinib ko'ring."]);
+            }
+
+            if (! Hash::check((string) $request->input('password'), (string) $request->user()->password)) {
+                RateLimiter::hit($rateKey, 600);
+
+                return back()->withErrors(['password' => "Parol noto'g'ri."]);
+            }
+
+            RateLimiter::clear($rateKey);
+        }
+
         $item = $this->confirmations->claim($token);
 
         if (! $item) {
@@ -52,6 +78,7 @@ class ConfirmationController extends Controller
                 'finance.expense' => $this->run('finance.manage', fn () => $finance->expense(PayMethod::from($p['method']), $p['amount'], $p['description'], $user, $p['category_id'] ?? null), 'Xarajat yozildi.'),
                 'payroll.pay' => $this->payroll($payroll, $p, $user),
                 'payment.reverse' => $this->run('payments.reverse', fn () => $payments->reverse(Payment::findOrFail($p['payment_id']), $p['reason'], $user), 'Storno bajarildi.'),
+                'payment.special_discount' => $this->specialDiscount($payments, $p, $user),
                 'sms.bulk' => $this->smsBulk($sms, $p, $user),
                 default => abort(404),
             };
@@ -60,6 +87,16 @@ class ConfirmationController extends Controller
         }
 
         return redirect($item['back'])->with('success', $message);
+    }
+
+    private function specialDiscount(PaymentService $payments, array $p, User $actor): string
+    {
+        abort_unless($actor->isSuperAdmin(), 403);
+
+        $student = User::visibleToContext()->ofRole(Role::Student)->findOrFail($p['student_id']);
+        $payments->specialDiscount($student, (int) $p['amount'], $p['description'], $actor);
+
+        return "Maxsus chegirma berildi: ".\App\Support\Format::money((int) $p['amount']).'.';
     }
 
     private function run(string $permission, callable $action, string $message): string

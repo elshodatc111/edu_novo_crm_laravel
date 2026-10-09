@@ -38,10 +38,19 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('confirm.store', $token) }}" class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end" @submit="busy = true">
+            <form method="POST" action="{{ route('confirm.store', $token) }}" class="space-y-4" @submit="busy = true">
                 @csrf
-                <a href="{{ $item['back'] }}" class="btn-secondary">Tuzatish (orqaga)</a>
-                <button class="btn-primary" :disabled="busy"><x-icon name="check" class="h-4 w-4" /> <span x-text="busy ? 'Bajarilmoqda...' : 'Ha, to\'g\'ri — tasdiqlash'"></span></button>
+                @if (in_array($item['kind'], \App\Http\Controllers\ConfirmationController::PASSWORD_KINDS, true))
+                    <div>
+                        <label for="password" class="label">Parolingiz</label>
+                        <input id="password" name="password" type="password" required autocomplete="current-password" class="input @error('password') input-error @enderror">
+                        @error('password')<p class="error-text">{{ $message }}</p>@enderror
+                    </div>
+                @endif
+                <div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                    <a href="{{ $item['back'] }}" class="btn-secondary">Tuzatish (orqaga)</a>
+                    <button class="btn-primary" :disabled="busy"><x-icon name="check" class="h-4 w-4" /> <span x-text="busy ? 'Bajarilmoqda...' : 'Ha, to\'g\'ri — tasdiqlash'"></span></button>
+                </div>
             </form>
         </div>
     </div>

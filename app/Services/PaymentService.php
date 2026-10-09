@@ -117,6 +117,48 @@ class PaymentService
         return $payment;
     }
 
+    /** v13.2: bitta maxsus chegirmaning yuqori chegarasi (so'm). */
+    public const MAX_SPECIAL_DISCOUNT = 1_000_000;
+
+    /**
+     * v13.2: sAdmin'ning MAXSUS chegirmasi: guruhga bog'lanmagan, narx rejasidagi `max_discount` bilan cheklanmaydi
+     * (kam ta'minlangan o'quvchilar va h.k.). Faqat o'quvchi balansini oshiradi, kassadan pul chiqmaydi, SMS yuborilmaydi.
+     * Bitta chegirma {@see self::MAX_SPECIAL_DISCOUNT} dan oshmaydi. `Payment::DISCOUNT` turida yoziladi, shuning uchun
+     * statistika/hisobotlarda «Chegirmalar» qatoriga kiradi va storno qilinadi.
+     */
+    public function specialDiscount(User $student, int $amount, string $description, User $actor): Payment
+    {
+        if (! $actor->isSuperAdmin()) {
+            throw new \Illuminate\Auth\Access\AuthorizationException("Maxsus chegirmani faqat superadmin bera oladi.");
+        }
+
+        $this->assertStudent($student);
+
+        $description = trim($description);
+        if ($description === '') {
+            throw ValidationException::withMessages(['special_description' => 'Sababni kiriting.']);
+        }
+        if ($amount <= 0 || $amount > self::MAX_SPECIAL_DISCOUNT) {
+            throw ValidationException::withMessages(['special_amount' => "Maxsus chegirma 1 dan ".Format::money(self::MAX_SPECIAL_DISCOUNT)." gacha bo'lishi kerak."]);
+        }
+
+        return DB::transaction(function () use ($student, $amount, $description, $actor) {
+            User::whereKey($student->id)->lockForUpdate()->firstOrFail();
+
+            $note = 'Maxsus chegirma: '.$description;
+            $payment = Payment::create([
+                'branch_id' => $student->branch_id, 'student_id' => $student->id, 'type' => Payment::DISCOUNT,
+                'amount' => $amount, 'description' => $note, 'created_by' => $actor->id,
+            ]);
+
+            $this->balance->post($student, $amount, BalanceTransaction::SPECIAL_DISCOUNT, null, $note, $actor, $payment);
+
+            AuditLog::record('payment.special_discount', $student, 'Maxsus chegirma berildi: '.Format::money($amount)." ({$description})");
+
+            return $payment;
+        });
+    }
+
     /** To'lovni qaytaradi: balansdan va kassadan yechiladi. Keyin admin tasdiqlaydi. */
     public function refund(User $student, PayMethod $method, int $amount, string $description, User $actor): Payment
     {

@@ -18,6 +18,7 @@ class BalanceTransaction extends Model
     public const FINE = 'fine';           // jarima
     public const PAYMENT = 'payment';     // to'lov qabul qilindi
     public const MANUAL_DISCOUNT = 'manual_discount';
+    public const SPECIAL_DISCOUNT = 'special_discount'; // v13.2: sAdmin maxsus chegirmasi (guruhga bog'lanmagan)
     public const CAMPAIGN_BONUS = 'campaign_bonus';
     public const PAYMENT_REFUND = 'payment_refund';
     public const OPENING = 'opening';     // import: boshlang'ich balans
@@ -55,6 +56,7 @@ class BalanceTransaction extends Model
             self::FINE => 'Jarima',
             self::PAYMENT => "To'lov",
             self::MANUAL_DISCOUNT => 'Chegirma (admin)',
+            self::SPECIAL_DISCOUNT => 'Maxsus chegirma (sAdmin)',
             self::CAMPAIGN_BONUS => 'Aksiya bonusi',
             self::PAYMENT_REFUND => "To'lov qaytarildi",
             self::OPENING => "Boshlang'ich balans (import)",

@@ -469,6 +469,8 @@ Batafsil sabab 10-bo'limda.
 
 `GET /statistics/overview?from=2026-09-01&to=2026-09-30` (`statistics.view`). Foydalanuvchi ruxsatiga qarab pul (`payments.view`) va moliya (`finance.view`) ko'rsatkichlari javobdan chiqarib tashlanadi.
 
+`GET /statistics/charts?from=&to=` (`statistics.view`) — grafiklar uchun xom ma'lumotlar: `income`, `top_groups` (faqat `payments.view` bilan), `courses`, `debt`, `attendance`, `funnel`.
+
 ---
 
 ## 10. Ataylab mobilga chiqarilmagan amallar
@@ -476,6 +478,7 @@ Batafsil sabab 10-bo'limda.
 Quyidagi amallar veb-panelda **ikki bosqichli tasdiqlash** ("Tekshiring" sahifasi) yoki alohida diqqat talab qiladigan boshqa himoya bilan qo'riqlangan. Bular ataylab mobil API'ga qo'shilmagan — mobil ilova bu qo'shimcha xavfsizlik qatlamini chetlab o'tmasligi kerak:
 
 - Moliyadan pul **CHIQARISH** (balansdan chiqim, xarajat, ehson chiqimi) — `POST /finance/withdraw`, `/finance/expense`, `/finance/charity-withdraw` **mavjud emas**.
+- **Maxsus chegirma** (sAdmin, parol bilan tasdiqlanadi) — faqat veb-panelda, mobil API'da **mavjud emas**.
 - Ish haqi **TO'LASH** — `POST /staff/{id}/payroll/pay` **mavjud emas** (faqat ko'rish bor, 8.5).
 - Ommaviy SMS'ni **haqiqatan yuborish** — faqat oldindan ko'rish bor (8.8), yuborish tugmasi veb'da.
 - Kassa **smenasini yopish** — `POST /cashbox/close-shift` **mavjud emas**.

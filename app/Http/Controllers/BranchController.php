@@ -132,6 +132,8 @@ class BranchController extends Controller
 
         BranchContext::select($data['branch_id'] ?? null);
 
-        return redirect()->back();
+        // v13: filial almashganda har doim bosh sahifaga o'tiladi - aks holda oldingi filialning sahifasi (masalan, /groups/6)
+        // yangi filialda 404 berardi.
+        return redirect()->route('dashboard');
     }
 }

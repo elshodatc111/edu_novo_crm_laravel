@@ -218,7 +218,8 @@ Batafsil ro'yxat, ma'lumotlar bazasi o'zgarishlari va cheklovlar: `CHANGELOG.md`
 - Eslatmalar qo'ng'iroqchasi, `payments.view_totals` ruxsati, lavozimni o'zgartirish, operatorga ish haqi to'lash tuzatildi.
 - Bir nechta sAdmin (Tizim → Super adminlar) va operatorga qo'shimcha filiallar (Hodimlar → operatorni tahrirlash, faqat sAdmin).
 - Hodim faoliyati statistikasi (ish haqi kartochkasi), kun/hafta/oy tushum dinamikasi, guruhlangan yon menyu.
-- Yangilash: `php artisan migrate` (4 ta yangi migratsiya), `npm install && npm run build`, `php artisan test`.
+- Yangilash: `php artisan migrate` (5 ta yangi migratsiya), `npm install && npm run build`, `php artisan test`.
+- **Maxsus chegirma (sAdmin):** o'quvchi balansiga guruhsiz bonus (bitta chegirma ≤ 1 000 000 so'm), sabab majburiy, parol bilan tasdiqlanadi; kassadan pul chiqmaydi, SMS yuborilmaydi, statistikada «Chegirmalar»ga kiradi. Faqat sAdmin — ruxsat sifatida berib bo'lmaydi.
 
 ## 3. Birinchi qadamlar
 

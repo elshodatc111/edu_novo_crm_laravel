@@ -317,8 +317,23 @@ Loyiha noldan, toza arxitektura bilan qayta yozildi (eski koddagi xatolar ko'chi
 - **To'liq standart shartnoma:** 10 bo'limli o'quv xizmati shartnomasi (predmet, narx va to'lov, davomat, huquq-majburiyatlar, bekor qilish va pulni qaytarish, shaxsiy ma'lumotlar, fors-major, nizolar, rekvizitlar). Sozlamalar → Shartnoma sahifasida standart matn endi oynada ko'rinadi (avval oyna bo'sh turardi) va tahrirlash mumkin. O'zi matn saqlagan filiallarga ta'sir qilmaydi.
 - **Shartnoma chop etish ko'rinishi:** endi rasmiy hujjat ko'rinishida — A4, Times New Roman 12 pt, ikki chetga tekislangan bandlar, markazdagi qalin sarlavhalar, imzo bloki ikki ustunli jadvalda, sahifa raqamlari. STIR yoki direktor ismi kiritilmagan bo'lsa, qo'lda to'ldirish uchun chiziq (____) chiqadi. Oddiy matnli eski/maxsus shablonlar ham shu ko'rinishda chiqadi.
 
+- **Guruhni to'liq tahrirlash:** xona, dars vaqti, dars kunlari, boshlanish sanasi, darslar soni va narx rejasi. O'tgan va davomad olingan darslar o'zgarmaydi, kelgusi darslar qayta tuziladi (bandlik tekshiriladi). Narx o'zgarsa faol o'quvchilar balansi servis orqali jurnalga yozib to'g'rilanadi (tasdiq bilan). Yangi ruxsat `groups.change_price` (migratsiya `2026_10_08_000005` mavjud adminlarga beradi).
+
 **Tuzatishlar**
+- Filial almashtirilganda oldingi filialning sahifasida (masalan, `/groups/6`) 404 chiqardi: endi filial almashganda har doim bosh sahifaga o'tiladi.
 - Operatorga ish haqi to'lashda chiqadigan 404 xatosi (tasdiqlash sahifasi) tuzatildi.
 
-**Yangilash:** `php artisan migrate`, `npm install && npm run build`, `php artisan test`. Yangi migratsiyalar: `2026_10_08_000001..000004`.
+**Yangilash:** `php artisan migrate`, `npm install && npm run build`, `php artisan test`. Yangi migratsiyalar: `2026_10_08_000001..000005`.
 
+### v13.1 — Guruh tahriri qoidalari aniqlashtirildi
+- **Yakunlangan guruh** (tugash sanasi o'tgan): xona, dars vaqti, dars kunlari, boshlanish sanasi va darslar soni o'zgarmaydi (forma maydonlari o'chiriladi, server ham rad etadi). Nom, kurs, o'qituvchi, stavka va narx tahrirlanadi.
+- **Jarayondagi guruh**: boshlanish sanasi o'zgarmaydi; vaqt/xona/kunlar o'zgarsa faqat bugungi (davomad olinmagan) va kelgusi darslar yangilanadi, o'tgan darslar eski vaqtida qoladi. Davomad olingan bugungi dars o'zgarmaydi.
+- **Boshlanmagan guruh**: boshlanish sanasi faqat bugun yoki keyingi kunlarga ko'chiriladi (forma `min` bilan ham cheklangan).
+- Migratsiya yo'q. Testlar: `V13GroupEditTest`.
+- Tuzatish: `phpunit.xml` ga `APP_URL=http://localhost` qo'shildi (testlar `.env` dagi manzilga bog'liq emas). Tasodifan o'chib ketgan mobil API kontrollerlari (`Group`, `Staff`, `Statistics`, `Finance`) qayta tiklandi, `GET /statistics/charts` qo'shildi, `routes/api.php` v13 (ikki bosqichli chiqim) holatiga keltirildi. Guruh formasidagi Blade sintaksis xatosi tuzatildi.
+
+### v13.2 — sAdmin maxsus chegirmasi
+- O'quvchi kartochkasida **«Maxsus chegirma»** bo'limi (faqat sAdmin): guruhga bog'lanmagan, narx rejasidagi `max_discount` bilan cheklanmagan bonus — kam ta'minlangan o'quvchilar uchun. Bitta chegirma **1 000 000 so'mdan oshmaydi**, sabab majburiy.
+- Ikki bosqichli: «Tekshiring» sahifasida **sAdmin paroli** so'raladi (noto'g'ri parol bilan bajarilmaydi, 5 ta urinishdan keyin 10 daqiqa kutiladi).
+- Faqat o'quvchi balansini oshiradi (`PaymentService::specialDiscount`, jurnalga yoziladi), kassadan pul chiqmaydi, SMS yuborilmaydi. Statistika va hisobotlarda «Chegirmalar» qatoriga kiradi, storno qilinadi.
+- Ruxsatlar ro'yxatida yo'q: boshqa foydalanuvchiga (admin ham) berib bo'lmaydi. Mobil API'ga chiqarilmagan. Mavjud admin chegirmasi o'zgarmagan. Migratsiya yo'q.

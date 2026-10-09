@@ -2009,6 +2009,125 @@
             },
             "description": "Statistika (ruxsatga qarab pul/moliya ko'rsatkichlari chiqarib tashlanadi)."
           }
+        },
+        {
+          "name": "GET /statistics/charts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/statistics/charts?from=2026-09-01&to=2026-09-30",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "statistics",
+                "charts"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2026-09-01"
+                },
+                {
+                  "key": "to",
+                  "value": "2026-09-30"
+                }
+              ]
+            },
+            "description": "Grafiklar uchun xom ma'lumotlar (pul qismi faqat `payments.view` bilan)."
+          }
+        },
+        {
+          "name": "POST /finance/outflow/preview",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Branch-Id",
+                "value": "{{branch_id}}",
+                "disabled": true,
+                "description": "Faqat sAdmin uchun. Yoqib, filial ID kiriting (aks holda 422 yoki 'barcha filiallar' rejimi)."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/finance/outflow/preview",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "finance",
+                "outflow",
+                "preview"
+              ]
+            },
+            "description": "Chiqim (withdraw/charity/expense) 1-bosqich: tekshirish. `type`: withdraw | charity | expense. Javobdagi `token` 2-bosqichda ishlatiladi (`finance.manage`).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"expense\",\n  \"method\": \"cash\",\n  \"amount\": 50000,\n  \"description\": \"Xarajat\",\n  \"category_id\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "POST /finance/outflow/confirm",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Branch-Id",
+                "value": "{{branch_id}}",
+                "disabled": true,
+                "description": "Faqat sAdmin uchun. Yoqib, filial ID kiriting (aks holda 422 yoki 'barcha filiallar' rejimi)."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/finance/outflow/confirm",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "finance",
+                "outflow",
+                "confirm"
+              ]
+            },
+            "description": "Chiqim 2-bosqich: `token` va foydalanuvchi paroli bilan tasdiqlash.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"<preview javobidagi token>\",\n  \"password\": \"parol\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
         }
       ]
     }

@@ -12,3 +12,4 @@
 .env
 *.sqlite
 .phpunit.result.cache
+_to_delete/
