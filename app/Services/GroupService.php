@@ -234,6 +234,51 @@ class GroupService
     }
 
     /**
+     * v13: arxivlash mumkinligini tekshiradi (hech narsani o'zgartirmaydi). Xato bo'lsa ValidationException (`group` kaliti).
+     * Faqat boshlanmagan (boshlanish sanasi kelmagan), davomad olinmagan va FAOL o'quvchisi yo'q guruh arxivlanadi.
+     */
+    public function assertArchivable(Group $group): void
+    {
+        if ($group->starts_on->toDateString() <= today()->toDateString()) {
+            throw ValidationException::withMessages(['group' => "Faqat hali boshlanmagan guruhni o'chirish mumkin: bu guruhning boshlanish sanasi kelgan."]);
+        }
+        if (AttendanceSession::where('group_id', $group->id)->exists()) {
+            throw ValidationException::withMessages(['group' => "Bu guruhda davomad olingan, uni o'chirib bo'lmaydi."]);
+        }
+        $members = $group->activeMembers()->count();
+        if ($members > 0) {
+            throw ValidationException::withMessages(['group' => "Guruhda {$members} ta faol o'quvchi bor. Avval o'quvchilarni guruhdan chiqaring (narx balansga qaytariladi), keyin o'chiring."]);
+        }
+    }
+
+    /** v13: boshlanmagan guruhni ARXIVLAYDI (soft delete): dars kunlari bo'shatiladi, tarix va jurnal saqlanadi. */
+    public function archive(Group $group, string $reason, User $actor): void
+    {
+        $reason = trim($reason);
+        if ($reason === '') {
+            throw ValidationException::withMessages(['reason' => "Sababni kiriting."]);
+        }
+
+        DB::transaction(function () use ($group, $reason, $actor) {
+            $locked = Group::whereKey($group->id)->lockForUpdate()->firstOrFail();
+            $this->assertArchivable($locked);
+
+            $days = GroupDay::where('group_id', $locked->id)->count();
+            $first = $locked->starts_on->toDateString();
+            $last = $locked->ends_on->toDateString();
+
+            // Xona/o'qituvchi bandligi (unique) bo'shatiladi, boshqa guruhlarga havola uziladi
+            GroupDay::where('group_id', $locked->id)->delete();
+            Group::where('next_group_id', $locked->id)->update(['next_group_id' => null]);
+
+            $locked->forceFill(['deleted_by' => $actor->id, 'delete_reason' => $reason])->save();
+            $locked->delete();
+
+            AuditLog::record('group.archived', $locked, "Guruh arxivlandi: {$locked->name} ({$first} — {$last}, {$days} ta dars bo'shatildi). Sabab: {$reason}");
+        });
+    }
+
+    /**
      * Qulflangan darslar: o'tgan (bugundan oldingi) va davomad olingan darslar. Ular o'zgartirilmaydi.
      *
      * @return \Illuminate\Support\Collection<int, GroupDay>

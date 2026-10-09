@@ -37,7 +37,7 @@ class ConfirmationController extends Controller
     }
 
     /** Parol bilan tasdiqlanadigan amallar (brauzer ochiq qolsa, boshqa odam bajara olmasligi uchun). */
-    public const PASSWORD_KINDS = ['payment.special_discount'];
+    public const PASSWORD_KINDS = ['payment.special_discount', 'group.archive'];
 
     public function store(Request $request, string $token, FinanceService $finance, PayrollService $payroll, PaymentService $payments, SmsService $sms): RedirectResponse
     {
@@ -78,6 +78,7 @@ class ConfirmationController extends Controller
                 'finance.expense' => $this->run('finance.manage', fn () => $finance->expense(PayMethod::from($p['method']), $p['amount'], $p['description'], $user, $p['category_id'] ?? null), 'Xarajat yozildi.'),
                 'payroll.pay' => $this->payroll($payroll, $p, $user),
                 'payment.reverse' => $this->run('payments.reverse', fn () => $payments->reverse(Payment::findOrFail($p['payment_id']), $p['reason'], $user), 'Storno bajarildi.'),
+                'group.archive' => $this->archiveGroup($p, $user),
                 'payment.special_discount' => $this->specialDiscount($payments, $p, $user),
                 'sms.bulk' => $this->smsBulk($sms, $p, $user),
                 default => abort(404),
@@ -86,7 +87,20 @@ class ConfirmationController extends Controller
             return redirect($item['back'])->withErrors($e->errors())->withInput();
         }
 
-        return redirect($item['back'])->with('success', $message);
+        // Arxivlangan guruh sahifasi endi yo'q - ro'yxatga qaytamiz
+        $to = $item['kind'] === 'group.archive' ? route('groups.index') : $item['back'];
+
+        return redirect($to)->with('success', $message);
+    }
+
+    private function archiveGroup(array $p, User $actor): string
+    {
+        $group = Group::findOrFail($p['group_id']);
+        $this->authorize('delete', $group);
+
+        app(\App\Services\GroupService::class)->archive($group, $p['reason'], $actor);
+
+        return "Guruh o'chirildi (arxivlandi): «{$group->name}».";
     }
 
     private function specialDiscount(PaymentService $payments, array $p, User $actor): string

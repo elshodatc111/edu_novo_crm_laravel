@@ -34,7 +34,7 @@ class BalanceTransaction extends Model
 
     public function group(): BelongsTo
     {
-        return $this->belongsTo(Group::class);
+        return $this->belongsTo(Group::class)->withTrashed();
     }
 
     public function payment(): BelongsTo

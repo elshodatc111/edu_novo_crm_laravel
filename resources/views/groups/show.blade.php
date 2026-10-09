@@ -12,8 +12,31 @@
         <x-slot:actions>
             <span class="{{ ['new' => 'badge-blue', 'active' => 'badge-green', 'finished' => 'badge-gray'][$group->status] }}">{{ $group->status_label }}</span>
             @can('update', $group)<a href="{{ route('groups.edit', $group) }}" class="btn-secondary"><x-icon name="edit" class="h-4 w-4" /> Tahrirlash</a>@endcan
+            @if ($group->status === \App\Models\Group::NEW && $members->isEmpty())
+                @can('delete', $group)
+                    <button type="button" @click="$dispatch('open-archive')" class="btn-secondary text-red-600">O'chirish</button>
+                @endcan
+            @endif
         </x-slot:actions>
     </x-page-header>
+
+    @if ($group->status === \App\Models\Group::NEW && $members->isEmpty())
+        @can('delete', $group)
+            <div x-data="{ open: {{ $errors->has('reason') || $errors->has('group') ? 'true' : 'false' }} }" @open-archive.window="open = true" x-show="open" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/50 p-4">
+                <form method="POST" action="{{ route('groups.archive', $group) }}" @click.outside="open = false" class="card card-body w-full max-w-md space-y-4">
+                    @csrf
+                    <h3 class="text-lg font-semibold text-ink-900 dark:text-white">Guruhni o'chirish</h3>
+                    <p class="text-sm text-ink-500">Guruh arxivlanadi: ro'yxatdan yo'qoladi, dars kunlari bo'shatiladi. Keyingi bosqichda parolingiz so'raladi.</p>
+                    @error('group')<p class="error-text">{{ $message }}</p>@enderror
+                    <x-input name="reason" label="Sabab" required />
+                    <div class="flex justify-end gap-2">
+                        <button type="button" @click="open = false" class="btn-secondary">Bekor qilish</button>
+                        <button class="btn-primary">Davom etish</button>
+                    </div>
+                </form>
+            </div>
+        @endcan
+    @endif
 
     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <div class="card card-body"><div class="text-sm text-ink-500">Dars vaqti</div><div class="mt-1 font-semibold">{{ $group->lessonTime->label }}</div><div class="text-xs text-ink-400">{{ $group->room->name }} · {{ $group->schedule->label() }}</div></div>

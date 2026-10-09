@@ -128,6 +128,7 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('groups/{group}', [GroupController::class, 'show'])->name('groups.show');
     Route::get('groups/{group}/edit', [GroupController::class, 'edit'])->name('groups.edit');
     Route::put('groups/{group}', [GroupController::class, 'update'])->name('groups.update');
+    Route::post('groups/{group}/archive', [GroupController::class, 'archiveInitiate'])->name('groups.archive');
     Route::post('groups/{group}/continue', [GroupController::class, 'continue'])->name('groups.continue');
     Route::post('groups/{group}/students', [GroupStudentController::class, 'store'])->name('groups.students.store');
     Route::delete('groups/{group}/students/{student}', [GroupStudentController::class, 'destroy'])->name('groups.students.destroy');

@@ -337,3 +337,9 @@ Loyiha noldan, toza arxitektura bilan qayta yozildi (eski koddagi xatolar ko'chi
 - Ikki bosqichli: «Tekshiring» sahifasida **sAdmin paroli** so'raladi (noto'g'ri parol bilan bajarilmaydi, 5 ta urinishdan keyin 10 daqiqa kutiladi).
 - Faqat o'quvchi balansini oshiradi (`PaymentService::specialDiscount`, jurnalga yoziladi), kassadan pul chiqmaydi, SMS yuborilmaydi. Statistika va hisobotlarda «Chegirmalar» qatoriga kiradi, storno qilinadi.
 - Ruxsatlar ro'yxatida yo'q: boshqa foydalanuvchiga (admin ham) berib bo'lmaydi. Mobil API'ga chiqarilmagan. Mavjud admin chegirmasi o'zgarmagan. Migratsiya yo'q.
+
+### v13.3 — Boshlanmagan guruhni o'chirish (arxivlash)
+- Guruh sahifasida «O'chirish»: faqat admin va sAdmin (yangi `groups.delete` ruxsati, mavjud adminlarga migratsiya bilan beriladi; sAdmin boshqaradi).
+- Faqat boshlanmagan (boshlanish sanasi kelmagan), davomad olinmagan, faol o'quvchisiz guruh. Sabab majburiy, parol bilan tasdiqlanadi, harakatlar jurnaliga yoziladi.
+- Soft delete (`groups.deleted_at`, `deleted_by`, `delete_reason`): ro'yxatdan yo'qoladi, dars kunlari bo'shatiladi, tarix saqlanadi. Boshqa filial guruhi — 404. Mobil API'ga chiqarilmagan.
+- Yangilash: `php artisan migrate` (yangi migratsiya `2026_10_10_000001`).

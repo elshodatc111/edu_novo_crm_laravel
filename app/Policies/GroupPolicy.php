@@ -37,6 +37,12 @@ class GroupPolicy
         return $user->hasPermission('groups.update');
     }
 
+    /** v13: boshlanmagan guruhni arxivlash - faqat `groups.delete` (admin/sAdmin). */
+    public function delete(User $user, Group $group): bool
+    {
+        return $user->role !== Role::Teacher && $user->hasPermission('groups.delete');
+    }
+
     public function manageMembers(User $user, Group $group): bool
     {
         return $user->hasPermission('groups.members');

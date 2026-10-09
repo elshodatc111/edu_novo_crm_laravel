@@ -220,6 +220,7 @@ Batafsil ro'yxat, ma'lumotlar bazasi o'zgarishlari va cheklovlar: `CHANGELOG.md`
 - Hodim faoliyati statistikasi (ish haqi kartochkasi), kun/hafta/oy tushum dinamikasi, guruhlangan yon menyu.
 - Yangilash: `php artisan migrate` (5 ta yangi migratsiya), `npm install && npm run build`, `php artisan test`.
 - **Maxsus chegirma (sAdmin):** o'quvchi balansiga guruhsiz bonus (bitta chegirma ≤ 1 000 000 so'm), sabab majburiy, parol bilan tasdiqlanadi; kassadan pul chiqmaydi, SMS yuborilmaydi, statistikada «Chegirmalar»ga kiradi. Faqat sAdmin — ruxsat sifatida berib bo'lmaydi.
+- **Guruhni o'chirish (arxivlash):** faqat boshlanmagan, o'quvchisiz guruh; admin va sAdmin (`groups.delete`), sabab va parol bilan; migratsiya `2026_10_10_000001`.
 
 ## 3. Birinchi qadamlar
 

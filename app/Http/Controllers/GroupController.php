@@ -126,6 +126,34 @@ class GroupController extends Controller
         return redirect()->route('groups.show', $new)->with('success', "Guruh davom ettirildi: «{$new->name}».");
     }
 
+    /** v13 (1-bosqich): boshlanmagan guruhni o'chirish - sabab va tekshiruv, keyin «Tekshiring» sahifasi (parol bilan). */
+    public function archiveInitiate(Request $request, Group $group, \App\Services\ConfirmationService $confirm): RedirectResponse
+    {
+        $this->authorize('delete', $group);
+
+        $data = $request->validate(['reason' => ['required', 'string', 'max:255']], [], ['reason' => 'Sabab']);
+
+        $this->groups->assertArchivable($group);
+
+        $token = $confirm->stash(
+            'group.archive',
+            ['group_id' => $group->id, 'reason' => $data['reason']],
+            "Guruhni o'chirish (arxivlash)",
+            [
+                ['Guruh', $group->name],
+                ['Kurs', $group->course?->name ?? '—'],
+                ['Boshlanish sanasi', $group->starts_on->format('d.m.Y')],
+                ['Darslar soni', (string) $group->lesson_count],
+                ['Sabab', $data['reason']],
+            ],
+            route('groups.show', $group),
+            null,
+            "Guruh ro'yxatdan olib tashlanadi va dars kunlari bo'shatiladi. Tasdiqlash uchun parolingizni kiriting.",
+        );
+
+        return redirect()->route('confirm.show', $token);
+    }
+
     private function formData(): array
     {
         return [

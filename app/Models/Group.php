@@ -8,10 +8,12 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Group extends Model
 {
     use BelongsToBranch;
+    use SoftDeletes; // v13: boshlanmagan guruh arxivlanadi (o'chirilmaydi)
 
     public const NEW = 'new';
     public const ACTIVE = 'active';

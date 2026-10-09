@@ -41,6 +41,8 @@ return [
                 'groups.members' => ['label' => "Guruhga o'quvchi qo'shish va chiqarish", 'roles' => $staff],
                 // v13: guruh narx rejasini o'zgartirish faol o'quvchilar balansiga ta'sir qiladi (farq avtomatik hisoblanadi)
                 'groups.change_price' => ['label' => "Guruh narxini o'zgartirish (faol o'quvchilar balansi qayta hisoblanadi)", 'roles' => ['admin']],
+                // v13: faqat boshlanmagan, o'quvchisiz guruhni arxivlash (parol va sabab bilan)
+                'groups.delete' => ['label' => "Boshlanmagan guruhni o'chirish (arxivlash)", 'roles' => ['admin']],
                 'groups.enroll_debtor' => ['label' => "Qarzi bor o'quvchini guruhga qo'shish (istisno)", 'roles' => ['admin']],
             ],
         ],

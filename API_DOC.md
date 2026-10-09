@@ -479,6 +479,7 @@ Quyidagi amallar veb-panelda **ikki bosqichli tasdiqlash** ("Tekshiring" sahifas
 
 - Moliyadan pul **CHIQARISH** (balansdan chiqim, xarajat, ehson chiqimi) — `POST /finance/withdraw`, `/finance/expense`, `/finance/charity-withdraw` **mavjud emas**.
 - **Maxsus chegirma** (sAdmin, parol bilan tasdiqlanadi) — faqat veb-panelda, mobil API'da **mavjud emas**.
+- Guruhni **o'chirish (arxivlash)** — faqat veb-panelda (`groups.delete`, parol bilan), mobil API'da **mavjud emas**.
 - Ish haqi **TO'LASH** — `POST /staff/{id}/payroll/pay` **mavjud emas** (faqat ko'rish bor, 8.5).
 - Ommaviy SMS'ni **haqiqatan yuborish** — faqat oldindan ko'rish bor (8.8), yuborish tugmasi veb'da.
 - Kassa **smenasini yopish** — `POST /cashbox/close-shift` **mavjud emas**.
