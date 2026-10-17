@@ -54,7 +54,10 @@
                         @forelse ($members as $m)
                             <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-ink-200 px-3.5 py-2.5 text-sm hover:bg-ink-50 dark:border-ink-700 dark:hover:bg-ink-800">
                                 <input type="checkbox" name="present[]" value="{{ $m->student_id }}" class="checkbox" @checked($existing[$m->student_id] ?? false)>
-                                <span class="font-medium">{{ $m->student->name }}</span>
+                                <span class="font-medium">{{ $loop->iteration }}. {{ $m->student->name }}</span>
+                                @unless (auth()->user()->role === \App\Enums\Role::Teacher)
+                                    <span class="ml-auto whitespace-nowrap text-xs font-semibold {{ $m->student->balance < 0 ? 'text-brand-600' : 'text-emerald-600' }}">{{ \App\Support\Format::money($m->student->balance) }}</span>
+                                @endunless
                             </label>
                         @empty
                             <p class="text-sm text-ink-500">Guruhda faol o'quvchi yo'q.</p>

@@ -37,7 +37,7 @@
                     <thead><tr><th>Sana</th><th>Fayl</th><th>Qatorlar</th><th>Holat</th><th></th></tr></thead>
                     <tbody>
                     @forelse ($batches as $b)
-                        <tr><td class="whitespace-nowrap">{{ $b->created_at->format('d.m.Y H:i') }}</td><td>{{ $b->filename }}</td><td>{{ $b->summary['total'] ?? '—' }}</td>
+                        <tr data-href="{{ route('imports.show', $b) }}"><td class="whitespace-nowrap">{{ $b->created_at->format('d.m.Y H:i') }}</td><td>{{ $b->filename }}</td><td>{{ $b->summary['total'] ?? '—' }}</td>
                             <td><span class="{{ ['pending' => 'badge-amber', 'done' => 'badge-green', 'cancelled' => 'badge-gray'][$b->status] }}">{{ ['pending' => 'Tasdiq kutilmoqda', 'done' => 'Bajarilgan', 'cancelled' => 'Bekor qilingan'][$b->status] }}</span></td>
                             <td class="text-right"><a href="{{ route('imports.show', $b) }}" class="btn-ghost btn-sm">Ochish</a></td></tr>
                     @empty<tr><td colspan="5" class="py-8 text-center text-ink-500">Hali import qilinmagan.</td></tr>@endforelse

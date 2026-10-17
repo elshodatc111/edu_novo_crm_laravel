@@ -74,7 +74,7 @@ class StudentController extends Controller
     {
         $this->authorize('students.view');
 
-        $student->load('leadSource');
+        $student->load(['leadSource', 'creator:id,name']);
 
         return view('students.show', [
             'student' => $student,

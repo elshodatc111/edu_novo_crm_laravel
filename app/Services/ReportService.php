@@ -120,17 +120,18 @@ class ReportService
 
     private function students(CarbonImmutable $from, CarbonImmutable $to): array
     {
-        $students = $this->between(User::visibleToContext()->where('role', Role::Student)->with('leadSource:id,name'), $from, $to, 'users.created_at')
+        $students = $this->between(User::visibleToContext()->where('role', Role::Student)->with(['leadSource:id,name', 'creator:id,name']), $from, $to, 'users.created_at')
             ->withCount(['memberships as active_groups' => fn ($q) => $q->where('is_active', true)])->orderBy('users.created_at')->get();
 
         return [
             'title' => "Yangi o'quvchilar hisoboti",
-            'columns' => ['Qo\'shilgan sana', "F.I.O", 'Telefon', 'Manba', "Tug'ilgan sana", 'Faol guruhlar', 'Balans', 'Holat'],
+            'columns' => ['Qo\'shilgan sana', "F.I.O", 'Telefon', 'Manba', "Ro'yxatga olgan", "Tug'ilgan sana", 'Faol guruhlar', 'Balans', 'Holat'],
             'rows' => $students->map(fn ($s) => [
                 $s->created_at->format('d.m.Y'), $s->name, Format::prettyPhone($s->phone), $s->leadSource?->name ?? '',
-                $s->birthday?->format('d.m.Y') ?? '', (int) $s->active_groups, (int) $s->balance, $s->archived_at ? 'Arxiv' : 'Faol',
+                $s->registeredByLabel(), $s->birthday?->format('d.m.Y') ?? '', (int) $s->active_groups, (int) $s->balance, $s->archived_at ? 'Arxiv' : 'Faol',
             ])->all(),
-            'summary' => ["Yangi o'quvchilar" => $students->count(), 'Arxivga o\'tganlar' => $students->whereNotNull('archived_at')->count()],
+            'summary' => ["Yangi o'quvchilar" => $students->count(), 'Arxivga o\'tganlar' => $students->whereNotNull('archived_at')->count(),
+                'Import orqali' => $students->where('registered_via', 'import')->count()],
         ];
     }
 

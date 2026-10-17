@@ -18,7 +18,7 @@ class StudentService
      *
      * @return array{0: User, 1: string} [o'quvchi, ochiq parol]
      */
-    public function create(array $data, User $actor, bool $notify = true): array
+    public function create(array $data, User $actor, bool $notify = true, string $via = 'manual'): array
     {
         $password = $this->generatePassword();
         $data['phone'] = Format::canonicalPhone($data['phone']) ?? $data['phone'];
@@ -33,6 +33,8 @@ class StudentService
             'password' => $password,
             'status' => UserStatus::Active,
             'balance' => 0,
+            'created_by' => $actor->id,
+            'registered_via' => $via,
         ]);
 
         AuditLog::record('student.created', $student, 'Markazga tashrif: yangi o\'quvchi qo\'shildi');

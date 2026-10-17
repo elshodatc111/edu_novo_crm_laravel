@@ -3,6 +3,7 @@
     <table class="table">
         <thead>
         <tr>
+            <th class="w-10">№</th>
             <th class="sticky left-0 z-10 bg-ink-50 dark:bg-ink-900">O'quvchi</th>
             @foreach ($matrix['days'] as $d)
                 @php
@@ -24,6 +25,7 @@
         <tbody>
         @forelse ($matrix['rows'] as $row)
             <tr>
+                <td class="text-ink-400">{{ $loop->iteration }}</td>
                 <td class="sticky left-0 whitespace-nowrap bg-white font-medium text-ink-900 dark:bg-ink-900 dark:text-white">
                     {{ $row['student']->name }} @unless ($row['active'])<span class="badge-gray ml-1">chiqqan</span>@endunless
                 </td>
@@ -37,7 +39,7 @@
                 <td class="text-center font-semibold">{{ $row['rate'] === null ? '—' : $row['rate'].'%' }}</td>
             </tr>
         @empty
-            <tr><td colspan="{{ count($matrix['days']) + 2 }}" class="py-10 text-center text-ink-500">Davomad ma'lumoti yo'q.</td></tr>
+            <tr><td colspan="{{ count($matrix['days']) + 3 }}" class="py-10 text-center text-ink-500">Davomad ma'lumoti yo'q.</td></tr>
         @endforelse
         </tbody>
     </table>

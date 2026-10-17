@@ -125,7 +125,7 @@ class ImportService
                 [$student, $password] = $this->students->create([
                     'branch_id' => $branchId, 'name' => $r['name'], 'phone' => $r['phone'], 'phone2' => $r['phone2'],
                     'birthday' => $r['birthday'], 'address' => $r['address'], 'about' => $r['about'], 'lead_source_id' => $sourceId,
-                ], $actor, notify: false);
+                ], $actor, notify: false, via: 'import');
 
                 if ($r['balance'] !== 0) {
                     $this->balance->post($student, $r['balance'], BalanceTransaction::OPENING, null, "Import: boshlang'ich balans", $actor);

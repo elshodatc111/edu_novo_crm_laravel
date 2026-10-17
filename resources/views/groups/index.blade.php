@@ -32,10 +32,11 @@
 
         <div class="table-wrap">
             <table class="table">
-                <thead><tr><th>Guruh</th><th>Kurs</th><th>O'qituvchi</th><th>Vaqt / Xona</th><th>Muddat</th><th>O'quvchilar</th><th>Holat</th></tr></thead>
+                <thead><tr><th class="w-10">№</th><th>Guruh</th><th>Kurs</th><th>O'qituvchi</th><th>Vaqt / Xona</th><th>Muddat</th><th>O'quvchilar</th><th>Holat</th></tr></thead>
                 <tbody>
                 @forelse ($groups as $g)
-                    <tr>
+                    <tr data-href="{{ route('groups.show', $g) }}">
+                        <td class="text-ink-400">{{ $groups->firstItem() + $loop->index }}</td>
                         <td><a href="{{ route('groups.show', $g) }}" class="font-medium text-ink-900 hover:text-brand-600 dark:text-white">{{ $g->name }}</a></td>
                         <td>{{ $g->course->name }}</td>
                         <td>{{ $g->teacher->name }}</td>
@@ -45,7 +46,7 @@
                         <td><span class="{{ ['new' => 'badge-blue', 'active' => 'badge-green', 'finished' => 'badge-gray'][$g->status] }}">{{ $g->status_label }}</span></td>
                     </tr>
                 @empty
-                    <tr><td colspan="7" class="py-12 text-center text-ink-500">Guruh topilmadi.</td></tr>
+                    <tr><td colspan="8" class="py-12 text-center text-ink-500">Guruh topilmadi.</td></tr>
                 @endforelse
                 </tbody>
             </table>

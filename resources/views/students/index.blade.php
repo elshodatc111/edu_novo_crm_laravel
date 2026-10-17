@@ -30,10 +30,11 @@
 
         <div class="table-wrap">
             <table class="table">
-                <thead><tr><th>F.I.O</th>@if (auth()->user()->isSuperAdmin())<th>Filial</th>@endif<th>Telefon</th><th>Guruhlar</th><th class="text-right">Balans</th></tr></thead>
+                <thead><tr><th class="w-10">№</th><th>F.I.O</th>@if (auth()->user()->isSuperAdmin())<th>Filial</th>@endif<th>Telefon</th><th>Guruhlar</th><th class="text-right">Balans</th></tr></thead>
                 <tbody>
                 @forelse ($students as $s)
-                    <tr>
+                    <tr data-href="{{ route('students.show', $s) }}">
+                        <td class="text-ink-400">{{ $students->firstItem() + $loop->index }}</td>
                         <td>
                             <a href="{{ route('students.show', $s) }}" class="font-medium text-ink-900 hover:text-brand-600 dark:text-white">{{ $s->name }}</a>
                             @if ($s->archived_at)<span class="badge-gray ml-1">Arxiv</span>@endif
@@ -44,7 +45,7 @@
                         <td class="text-right font-semibold {{ $s->balance < 0 ? 'text-brand-600' : 'text-emerald-600' }}">{{ \App\Support\Format::money($s->balance) }}</td>
                     </tr>
                 @empty
-                    <tr><td colspan="5" class="py-12 text-center text-ink-500">O'quvchi topilmadi.</td></tr>
+                    <tr><td colspan="6" class="py-12 text-center text-ink-500">O'quvchi topilmadi.</td></tr>
                 @endforelse
                 </tbody>
             </table>

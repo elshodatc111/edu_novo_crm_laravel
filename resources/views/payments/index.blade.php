@@ -33,7 +33,7 @@
                 <thead><tr><th>Sana</th><th>O'quvchi</th><th>Tur</th><th>Guruh</th><th class="text-right">Summa</th><th>Kassir</th><th>Izoh</th><th></th></tr></thead>
                 <tbody>
                 @forelse ($payments as $p)
-                    <tr>
+                    <tr data-href="{{ route('students.show', $p->student) }}">
                         <td class="whitespace-nowrap">{{ $p->created_at->format('d.m.Y H:i') }}</td>
                         <td><a href="{{ route('students.show', $p->student) }}" class="font-medium text-ink-900 hover:text-brand-600 dark:text-white">{{ $p->student->name }}</a></td>
                         <td>

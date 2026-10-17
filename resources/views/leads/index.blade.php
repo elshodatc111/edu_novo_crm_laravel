@@ -88,7 +88,7 @@
                     <thead><tr><th>Ism</th><th>Telefon</th><th>Manba</th><th>AI</th><th>Sana</th><th></th></tr></thead>
                     <tbody>
                     @forelse ($leads as $l)
-                        <tr>
+                        <tr data-href="{{ route('leads.show', $l) }}">
                             <td>
                                 <a href="{{ route('leads.show', $l) }}" class="font-medium text-ink-900 hover:text-brand-600 dark:text-white">{{ $l->name }}</a>
                                 @if ($l->is_repeat)<span class="badge-amber ml-1" title="Bu raqam o'quvchi sifatida ro'yxatda bor">Takror</span>@endif

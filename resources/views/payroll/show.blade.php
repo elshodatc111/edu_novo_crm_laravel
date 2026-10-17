@@ -50,16 +50,18 @@
                 <div class="rounded-xl bg-ink-50 p-3 dark:bg-ink-800/50"><div class="text-xs text-ink-500">To'lovlar soni</div><div class="text-lg font-bold">{{ $activity['totals']['payments'] }}</div></div>
                 <div class="rounded-xl bg-ink-50 p-3 dark:bg-ink-800/50"><div class="text-xs text-ink-500">Murojaatlar (qabul qilingan)</div><div class="text-lg font-bold">{{ $activity['totals']['leads'] }} ({{ $activity['totals']['converted'] }})</div></div>
                 <div class="rounded-xl bg-ink-50 p-3 dark:bg-ink-800/50"><div class="text-xs text-ink-500">Yangi o'quvchilar</div><div class="text-lg font-bold">{{ $activity['totals']['students'] }}</div></div>
+                <div class="rounded-xl bg-ink-50 p-3 dark:bg-ink-800/50 sm:col-span-2"><div class="text-xs text-ink-500">Ulardan to'lov qilganlar</div><div class="text-lg font-bold">{{ $activity['totals']['paid_students'] }} ta · {{ $fm($activity['totals']['paid_sum']) }}</div></div>
             </div>
             <div class="table-wrap mt-4 max-h-96 overflow-y-auto">
                 <table class="table">
-                    <thead><tr><th>{{ $act === 'month' ? 'Oy' : 'Kun' }}</th><th class="text-right">To'lovlar</th><th class="text-right">Naqt</th><th class="text-right">Plastik</th><th class="text-right">Jami</th><th class="text-right">Murojaat</th><th class="text-right">Qabul</th><th class="text-right">Izoh</th><th class="text-right">O'quvchi</th></tr></thead>
+                    <thead><tr><th>{{ $act === 'month' ? 'Oy' : 'Kun' }}</th><th class="text-right">To'lovlar</th><th class="text-right">Naqt</th><th class="text-right">Plastik</th><th class="text-right">Jami</th><th class="text-right">Murojaat</th><th class="text-right">Qabul</th><th class="text-right">Izoh</th><th class="text-right">O'quvchi</th><th class="text-right">Shundan to'lagan</th><th class="text-right">To'lov summasi</th></tr></thead>
                     <tbody>
                     @foreach (array_reverse($activity['rows']) as $r)
                         <tr class="{{ $r['payments'] + $r['leads'] + $r['notes'] + $r['students'] === 0 ? 'text-ink-300' : '' }}">
                             <td class="whitespace-nowrap">{{ $r['label'] }}</td><td class="text-right">{{ $r['payments'] }}</td>
                             <td class="text-right">{{ $fm($r['cash']) }}</td><td class="text-right">{{ $fm($r['card']) }}</td><td class="text-right font-semibold">{{ $fm($r['total']) }}</td>
                             <td class="text-right">{{ $r['leads'] }}</td><td class="text-right">{{ $r['converted'] }}</td><td class="text-right">{{ $r['notes'] }}</td><td class="text-right">{{ $r['students'] }}</td>
+                            <td class="text-right">{{ $r['paid_students'] }}</td><td class="text-right">{{ $fm($r['paid_sum']) }}</td>
                         </tr>
                     @endforeach
                     </tbody>

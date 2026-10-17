@@ -7,7 +7,7 @@
     $todayRow = collect($matrix['rows'])->mapWithKeys(fn ($r) => [$r['student']->id => $r['cells'][today()->toDateString()] ?? null]);
     $canTake = $me->can('takeAttendance', $group) && $lessonToday;
 @endphp
-<div x-data="{ tab: 'attendance' }">
+<div x-data="{ tab: '{{ ($canTake || $errors->has('attendance')) ? 'attendance' : 'students' }}' }">
     <x-page-header :title="$group->name" :subtitle="$group->course->name.' · '.$group->teacher->name">
         <x-slot:actions>
             <span class="{{ ['new' => 'badge-blue', 'active' => 'badge-green', 'finished' => 'badge-gray'][$group->status] }}">{{ $group->status_label }}</span>
@@ -49,7 +49,7 @@
     </div>
 
     <div class="mt-6 flex gap-1 overflow-x-auto rounded-xl bg-ink-100 p-1 dark:bg-ink-800">
-        @foreach (['attendance' => 'Davomad', 'students' => "O'quvchilar", 'days' => 'Dars kunlari'] + (($continueData && $group->status !== 'new') ? ['continue' => 'Davom ettirish'] : []) as $k => $label)
+        @foreach (['students' => "O'quvchilar", 'attendance' => 'Davomad', 'days' => 'Dars kunlari'] + (($continueData && $group->status !== 'new') ? ['continue' => 'Davom ettirish'] : []) as $k => $label)
             <button type="button" @click="tab = '{{ $k }}'" :class="tab === '{{ $k }}' ? 'bg-white text-brand-700 shadow-sm dark:bg-ink-900 dark:text-brand-300' : 'text-ink-600 dark:text-ink-300'" class="whitespace-nowrap rounded-lg px-3.5 py-2 text-sm font-medium">{{ $label }}</button>
         @endforeach
     </div>
@@ -77,7 +77,10 @@
                         @forelse ($members as $m)
                             <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-ink-200 px-3.5 py-2.5 text-sm hover:bg-ink-50 dark:border-ink-700 dark:hover:bg-ink-800">
                                 <input type="checkbox" name="present[]" value="{{ $m->student_id }}" class="checkbox" @checked($takenToday ? ($todayRow[$m->student_id] ?? false) : true)>
-                                <span class="font-medium">{{ $m->student->name }}</span>
+                                <span class="font-medium">{{ $loop->iteration }}. {{ $m->student->name }}</span>
+                                @unless ($isTeacher)
+                                    <span class="ml-auto whitespace-nowrap text-xs font-semibold {{ $m->student->balance < 0 ? 'text-brand-600' : 'text-emerald-600' }}">{{ \App\Support\Format::money($m->student->balance) }}</span>
+                                @endunless
                             </label>
                         @empty
                             <p class="text-sm text-ink-500">Guruhda faol o'quvchi yo'q.</p>
@@ -129,10 +132,11 @@
         <div class="card overflow-hidden">
             <div class="table-wrap">
                 <table class="table">
-                    <thead><tr><th>F.I.O</th>@unless ($isTeacher)<th>Telefon</th><th class="text-right">Balans</th><th>Qo'shilgan</th><th></th>@endunless</tr></thead>
+                    <thead><tr><th class="w-10">№</th><th>F.I.O</th>@unless ($isTeacher)<th>Telefon</th><th class="text-right">Balans</th><th>Qo'shilgan</th><th></th>@endunless</tr></thead>
                     <tbody>
                     @forelse ($members as $m)
-                        <tr>
+                        <tr @unless ($isTeacher) data-href="{{ route('students.show', $m->student) }}" @endunless>
+                            <td class="text-ink-400">{{ $loop->iteration }}</td>
                             @if ($isTeacher)
                                 <td class="font-medium text-ink-900 dark:text-white">{{ $m->student->name }}</td>
                             @else
@@ -149,7 +153,7 @@
                             @endif
                         </tr>
                     @empty
-                        <tr><td colspan="5" class="py-10 text-center text-ink-500">Guruhda o'quvchi yo'q.</td></tr>
+                        <tr><td colspan="6" class="py-10 text-center text-ink-500">Guruhda o'quvchi yo'q.</td></tr>
                     @endforelse
                     </tbody>
                 </table>

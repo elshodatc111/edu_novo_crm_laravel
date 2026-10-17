@@ -24,6 +24,7 @@ class User extends Authenticatable
         'branch_id', 'role', 'name', 'username', 'email', 'phone', 'password',
         'birthday', 'address', 'status', 'last_login_at',
         'phone2', 'about', 'balance', 'lead_source_id', 'archived_at', 'photo_path',
+        'created_by', 'registered_via',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -66,6 +67,21 @@ class User extends Authenticatable
     public function branch(): BelongsTo
     {
         return $this->belongsTo(Branch::class);
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'created_by');
+    }
+
+    /** O'quvchini kim ro'yxatga olgani (hisobot va kartochka uchun). */
+    public function registeredByLabel(): string
+    {
+        if ($this->registered_via === 'import') {
+            return 'Import (Excel)';
+        }
+
+        return $this->creator?->name ?? '—';
     }
 
     public function permissions(): HasMany

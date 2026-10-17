@@ -123,7 +123,7 @@ class LeadService
                 [$student, $password] = $this->students->create([
                     'name' => $lead->name, 'phone' => $lead->phone, 'phone2' => $lead->phone2, 'address' => $lead->address,
                     'about' => $about, 'lead_source_id' => $lead->lead_source_id,
-                ], $actor);
+                ], $actor, via: 'lead');
                 $text = "Murojat ro'yxatga olindi, o'quvchi yaratildi: {$student->name}";
             }
 

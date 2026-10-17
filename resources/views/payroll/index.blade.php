@@ -12,18 +12,17 @@
     <div class="card overflow-hidden">
         <div class="table-wrap">
             <table class="table">
-                <thead><tr><th>F.I.O</th><th>Lavozim</th>@if ($tab === 'teachers')<th class="text-right">To'lanmagan qoldiq</th>@endif<th class="text-right">Shu oy to'landi</th><th></th></tr></thead>
+                <thead><tr><th>F.I.O</th><th>Lavozim</th>@if ($tab === 'teachers')<th class="text-right">To'lanmagan qoldiq</th>@endif<th class="text-right">Shu oy to'landi</th></tr></thead>
                 <tbody>
                 @forelse ($rows as $r)
-                    <tr>
-                        <td class="font-medium text-ink-900 dark:text-white">{{ $r['user']->name }}</td>
+                    <tr data-href="{{ route('payroll.show', $r['user']) }}">
+                        <td class="font-medium text-ink-900 dark:text-white"><a href="{{ route('payroll.show', $r['user']) }}" class="hover:text-brand-600">{{ $r['user']->name }}</a></td>
                         <td><span class="{{ $r['user']->role->badgeClass() }}">{{ $r['user']->role->label() }}</span></td>
                         @if ($tab === 'teachers')<td class="text-right font-semibold {{ $r['remaining'] > 0 ? 'text-brand-600' : '' }}">{{ \App\Support\Format::money($r['remaining']) }}</td>@endif
                         <td class="text-right">{{ \App\Support\Format::money($r['paid_month']) }}</td>
-                        <td class="text-right"><a href="{{ route('payroll.show', $r['user']) }}" class="btn-secondary btn-sm">Ochish</a></td>
                     </tr>
                 @empty
-                    <tr><td colspan="5" class="py-10 text-center text-ink-500">Ro'yxat bo'sh.</td></tr>
+                    <tr><td colspan="4" class="py-10 text-center text-ink-500">Ro'yxat bo'sh.</td></tr>
                 @endforelse
                 </tbody>
             </table>

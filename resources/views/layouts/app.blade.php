@@ -91,5 +91,20 @@
     </main>
 </div>
 @stack('scripts')
+<script>
+(function () {
+    function mark() { document.querySelectorAll('tr[data-href]').forEach(function (r) { r.style.cursor = 'pointer'; }); }
+    document.addEventListener('DOMContentLoaded', mark);
+    document.addEventListener('click', function (e) {
+        var row = e.target.closest && e.target.closest('tr[data-href]');
+        if (!row || e.button !== 0) return;
+        if (e.target.closest('a, button, input, select, textarea, label, form, summary, [role="button"], [data-no-row]')) return;
+        var sel = window.getSelection && window.getSelection().toString();
+        if (sel) return;
+        var href = row.getAttribute('data-href');
+        if (e.ctrlKey || e.metaKey) { window.open(href, '_blank'); } else { window.location.href = href; }
+    });
+})();
+</script>
 </body>
 </html>

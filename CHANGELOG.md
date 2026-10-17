@@ -343,3 +343,12 @@ Loyiha noldan, toza arxitektura bilan qayta yozildi (eski koddagi xatolar ko'chi
 - Faqat boshlanmagan (boshlanish sanasi kelmagan), davomad olinmagan, faol o'quvchisiz guruh. Sabab majburiy, parol bilan tasdiqlanadi, harakatlar jurnaliga yoziladi.
 - Soft delete (`groups.deleted_at`, `deleted_by`, `delete_reason`): ro'yxatdan yo'qoladi, dars kunlari bo'shatiladi, tarix saqlanadi. Boshqa filial guruhi — 404. Mobil API'ga chiqarilmagan.
 - Yangilash: `php artisan migrate` (yangi migratsiya `2026_10_10_000001`).
+
+### v13.4 — Ro'yxatlar, tablar, ro'yxatga olgan xodim
+- **№ raqamlash**: O'quvchilar, Guruhlar ro'yxatlarida, guruh ichidagi o'quvchilar, davomad matritsasi va davomad olish ro'yxatida ketma-ket raqam (sahifalashda davom etadi).
+- **Guruh sahifasi**: «O'quvchilar» tabi «Davomad»dan oldin. Bugun dars bo'lib davomad olish mumkin bo'lsa «Davomad» ochiq, aks holda «O'quvchilar».
+- **Davomad olishda balans**: har bir o'quvchi yonida balansi ko'rinadi (o'qituvchidan tashqari hamma uchun; o'tgan kunni tuzatish sahifasida ham).
+- **Qatorni bosib ochish**: O'quvchilar, Guruhlar, guruh o'quvchilari, Ish haqi, Murojaatlar, To'lovlar, Import, Hodimlar (tahrirlash huquqi bo'lsa) ro'yxatlarida butun qator bosiladi (Ctrl+bosish — yangi oyna). Ish haqi ro'yxatidagi «Ochish» tugmasi olib tashlandi.
+- **Ro'yxatga olgan xodim**: yangi `users.created_by` va `users.registered_via` ustunlari (additive). Eski o'quvchilar uchun harakatlar jurnalidan best-effort to'ldiriladi (topilmasa bo'sh qoladi, hech narsa o'chmaydi). O'quvchi kartochkasi va «Yangi o'quvchilar hisoboti»da «Ro'yxatga olgan» ustuni; Excel import orqali kelganlar «Import (Excel)» deb belgilanadi, hisobot xulosasida «Import orqali» soni bor.
+- **Hodim faoliyati**: «Ulardan to'lov qilganlar» (soni va to'lov summasi) — hodim ro'yxatga olgan o'quvchilardan to'lov qilganlar (storno qilingan to'lovlar hisobga olinmaydi).
+- Yangilash: `php artisan migrate` (yangi `2026_10_17_000001`), `npm run build` shart emas (yangi CSS klass yo'q). Testlar: `V13ListsAndRegistrarTest`.

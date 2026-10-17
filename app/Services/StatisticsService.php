@@ -399,7 +399,7 @@ class StatisticsService
         $f = $from->toDateString();
         $t = $today->toDateString();
 
-        $fields = ['payments' => 0, 'cash' => 0, 'card' => 0, 'leads' => 0, 'converted' => 0, 'notes' => 0, 'students' => 0];
+        $fields = ['payments' => 0, 'cash' => 0, 'card' => 0, 'leads' => 0, 'converted' => 0, 'notes' => 0, 'students' => 0, 'paid_students' => 0, 'paid_sum' => 0];
         $byDate = [];
         $add = function (string $date, array $values) use (&$byDate, $fields) {
             $date = substr($date, 0, 10);
@@ -439,6 +439,21 @@ class StatisticsService
             ->selectRaw('DATE(created_at) as d, count(*) as c')->groupByRaw('DATE(created_at)')->get();
         foreach ($students as $r) {
             $add($r->d, ['students' => $r->c]);
+        }
+
+        // Shu xodim ro'yxatga olgan yangi o'quvchilardan to'lov qilganlar: soni va to'lov summasi
+        $mine = User::query()->where('role', Role::Student)->where('created_by', $person->id)
+            ->when(\App\Support\BranchContext::id(), fn ($q, $id) => $q->where('users.branch_id', $id))
+            ->whereDate('created_at', '>=', $f)->whereDate('created_at', '<=', $t)
+            ->get(['id', 'created_at']);
+        if ($mine->isNotEmpty()) {
+            $paidBy = Payment::query()->whereIn('student_id', $mine->pluck('id'))->where('type', Payment::PAYMENT)->whereNull('reversed_at')
+                ->selectRaw('student_id, coalesce(sum(amount), 0) as s')->groupBy('student_id')->pluck('s', 'student_id');
+            foreach ($mine as $stu) {
+                if (isset($paidBy[$stu->id])) {
+                    $add($stu->created_at->toDateString(), ['paid_students' => 1, 'paid_sum' => $paidBy[$stu->id]]);
+                }
+            }
         }
 
         // Davrlarga yig'ish (eng yangisi tepada)

@@ -44,6 +44,7 @@
                 <div><dt class="text-ink-500">Qo'shimcha telefon</dt><dd class="font-medium">{{ $student->phone2 ?? '—' }}</dd></div>
                 <div><dt class="text-ink-500">Tug'ilgan sana</dt><dd class="font-medium">{{ $student->birthday?->format('d.m.Y') ?? '—' }}</dd></div>
                 <div><dt class="text-ink-500">Manba</dt><dd class="font-medium">{{ $student->leadSource?->name ?? '—' }}</dd></div>
+                <div><dt class="text-ink-500">Ro'yxatga olgan</dt><dd class="font-medium">{{ $student->registeredByLabel() }}<div class="text-xs font-normal text-ink-400">{{ $student->created_at->format('d.m.Y H:i') }}</div></dd></div>
                 <div class="sm:col-span-2"><dt class="text-ink-500">Manzil</dt><dd class="font-medium">{{ $student->address ?? '—' }}</dd></div>
                 @if ($student->about)<div class="sm:col-span-2"><dt class="text-ink-500">Eslatma</dt><dd>{{ $student->about }}</dd></div>@endif
             </dl>

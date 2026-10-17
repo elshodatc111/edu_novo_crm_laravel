@@ -38,7 +38,7 @@
                 </thead>
                 <tbody>
                 @forelse ($users as $u)
-                    <tr>
+                    <tr @can('manage', $u) data-href="{{ route('staff.edit', $u) }}" @endcan>
                         <td>
                             <div class="font-medium text-ink-900 dark:text-white">{{ $u->name }}</div>
                             <div class="text-xs text-ink-400">{{ $u->username }}</div>
