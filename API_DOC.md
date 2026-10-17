@@ -321,6 +321,7 @@ So'nggi 20 ta test urinishi (ball, to'g'ri javoblar soni, sana).
 
 ### `GET /me/payroll`
 O'qituvchi uchun: guruhlar bo'yicha hisoblangan ish haqi va to'lovlar tarixi (faqat ko'rish).
+v13.5: har bir guruhda yangi (qo'shimcha) maydonlar: `usluga_students` (o'quvchilar × `usluga_student_amount`), `usluga_bonus` (bonusli × `usluga_bonus_amount`), `usluga_tier` (staj pog'onasi nomi yoki `null`), `accrued_total` (hisoblangan + usluga). Mavjud maydon nomlari o'zgarmagan; `accrued` endi usluga bilan birga davomadga mutanosib summa.
 
 ---
 

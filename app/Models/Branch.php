@@ -17,7 +17,7 @@ class Branch extends Model
         'name', 'code', 'phone', 'address', 'charity_percent', 'discount_days_before', 'discount_days_after', 'sms_enabled', 'status', 'opened_at', 'closed_at', 'closed_reason',
         'eskiz_email', 'eskiz_password', 'eskiz_from', 'sms_auto_debt', 'sms_auto_absent',
         'stir', 'director_name', 'director_title', 'contract_template',
-        'brand_color', 'public_about',
+        'brand_color', 'public_about', 'usluga_from', 'usluga_rates',
     ];
 
     protected $hidden = ['eskiz_password'];
@@ -32,6 +32,8 @@ class Branch extends Model
             'closed_at' => 'datetime',
             'eskiz_password' => 'encrypted',
             'charity_percent' => 'float',
+            'usluga_from' => 'date:Y-m-d',
+            'usluga_rates' => 'array',
             'sms_enabled' => 'boolean',
             'sms_auto_debt' => 'boolean',
             'sms_auto_absent' => 'boolean',

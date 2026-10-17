@@ -19,7 +19,7 @@ class PayrollService
     /** Tugaganiga shuncha kun bo'lgan guruhlar ham ish haqi hisobida ko'rsatiladi. */
     public const RECENT_DAYS = 31;
 
-    public function __construct(private WalletService $wallets) {}
+    public function __construct(private WalletService $wallets, private UslugaService $usluga) {}
 
     /**
      * O'qituvchining guruhlari bo'yicha hisoblangan ish haqi.
@@ -41,13 +41,22 @@ class PayrollService
         $held = AttendanceSession::whereIn('group_id', $ids)->selectRaw('group_id, count(*) as c')->groupBy('group_id')->pluck('c', 'group_id');
         $paid = Payout::whereIn('group_id', $ids)->where('recipient_id', $teacher->id)->selectRaw('group_id, sum(amount) as s')->groupBy('group_id')->pluck('s', 'group_id');
 
+        $groups->load('teacher');
+
         return $groups->map(function (Group $group) use ($held, $paid) {
             $studentIds = GroupStudent::where('group_id', $group->id)->where('is_active', true)->pluck('student_id');
             $students = $studentIds->count();
             $bonus = $this->bonusCount($group, $studentIds->all());
 
             $accrued = $students * $group->teacher_rate + $bonus * $group->teacher_bonus_rate;
-            $byAttendance = $group->lesson_count > 0 ? (int) round(($held[$group->id] ?? 0) * $accrued / $group->lesson_count) : 0;
+
+            // v13: usluga (staj ustamasi) - alohida qo'shiladi, mavjud hisob (`accrued`) o'zgarmaydi
+            $u = $this->usluga->resolve($group);
+            $uStudents = $students * $u['student'];
+            $uBonus = $bonus * $u['bonus'];
+            $total = $accrued + $uStudents + $uBonus;
+
+            $byAttendance = $group->lesson_count > 0 ? (int) round(($held[$group->id] ?? 0) * $total / $group->lesson_count) : 0;
             $paidSum = (int) ($paid[$group->id] ?? 0);
 
             return [
@@ -56,6 +65,10 @@ class PayrollService
                 'bonus' => $bonus,
                 'held' => (int) ($held[$group->id] ?? 0),
                 'accrued' => $accrued,
+                'usluga' => $u,
+                'usluga_students' => $uStudents,
+                'usluga_bonus' => $uBonus,
+                'accrued_total' => $total,
                 'accrued_by_attendance' => $byAttendance,
                 'paid' => $paidSum,
                 'remaining' => $byAttendance - $paidSum,

@@ -22,7 +22,7 @@ class Group extends Model
     protected $fillable = [
         'branch_id', 'course_id', 'room_id', 'lesson_time_id', 'teacher_id', 'next_group_id', 'created_by',
         'name', 'schedule', 'price', 'early_discount', 'max_discount', 'lesson_count', 'starts_on', 'ends_on',
-        'teacher_rate', 'teacher_bonus_rate',
+        'teacher_rate', 'teacher_bonus_rate', 'usluga_tier', 'usluga_student_amount', 'usluga_bonus_amount',
     ];
 
     protected function casts(): array

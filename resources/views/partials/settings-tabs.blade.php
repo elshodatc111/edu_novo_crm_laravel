@@ -10,6 +10,7 @@
         ["O'quvchi manbalari", route('catalog.index', 'lead-sources'), request()->is('settings/lead-sources*')],
         ['Dam olish kunlari', route('holidays.index'), request()->is('settings/holidays*')],
         ['Shartnoma', route('contract-settings.edit'), request()->is('settings/contract*')],
+        ['Usluga', route('usluga-settings.edit'), request()->is('settings/usluga*')],
     ];
 @endphp
 <div class="mb-6 flex gap-1 overflow-x-auto rounded-xl bg-ink-100 p-1 dark:bg-ink-800">

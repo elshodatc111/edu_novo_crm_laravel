@@ -352,3 +352,11 @@ Loyiha noldan, toza arxitektura bilan qayta yozildi (eski koddagi xatolar ko'chi
 - **Ro'yxatga olgan xodim**: yangi `users.created_by` va `users.registered_via` ustunlari (additive). Eski o'quvchilar uchun harakatlar jurnalidan best-effort to'ldiriladi (topilmasa bo'sh qoladi, hech narsa o'chmaydi). O'quvchi kartochkasi va «Yangi o'quvchilar hisoboti»da «Ro'yxatga olgan» ustuni; Excel import orqali kelganlar «Import (Excel)» deb belgilanadi, hisobot xulosasida «Import orqali» soni bor.
 - **Hodim faoliyati**: «Ulardan to'lov qilganlar» (soni va to'lov summasi) — hodim ro'yxatga olgan o'quvchilardan to'lov qilganlar (storno qilingan to'lovlar hisobga olinmaydi).
 - Yangilash: `php artisan migrate` (yangi `2026_10_17_000001`), `npm run build` shart emas (yangi CSS klass yo'q). Testlar: `V13ListsAndRegistrarTest`.
+
+### v13.5 — O'qituvchi «Usluga» (staj ustamasi)
+- Yangi **Sozlamalar → Usluga**: 4 pog'ona (0–6, 6–12, 12–18, 18 oydan keyin) uchun qat'iy «o'quvchi usluga» va «bonus usluga» summalari hamda «Usluga qo'llanadigan sana» (masalan, 01.10.2026). O'zgartirish faqat sAdmin; admin (`settings.branch`) ko'ra oladi. Harakatlar jurnaliga yoziladi.
+- Hodim formasiga **«Ishga olingan sana»** (`users.hired_at`); o'zgarishi jurnalga yoziladi (`staff.hired_at_changed`).
+- Ish haqi (o'qituvchi sahifasi): yangi ustunlar «Usluga (o'quvchi)» = o'quvchilar × summa, «Usluga (bonus)» = bonusli × summa va «Jami». Hozirgi hisob-kitob (`o'quvchi × stavka + bonusli × bonus`) o'zgarmagan, usluga ustiga qo'shiladi. «Davomad bo'yicha» usluga bilan birga mutanosib.
+- Pog'ona guruh boshlangan sanadagi staj bo'yicha tanlanadi; guruh boshlangach summa guruhga qotiriladi (keyingi sozlama/sana o'zgarishi hisobga ta'sir qilmaydi). Sanadan oldin boshlangan guruhlarda usluga 0 — eski hisob va to'langan ish haqi o'zgarmaydi.
+- Mobil API (`/me/payroll`, `/staff/{id}/payroll`): faqat yangi maydonlar qo'shildi (`usluga_students`, `usluga_student_amount`, `usluga_bonus`, `usluga_bonus_amount`, `usluga_tier`, `accrued_total`).
+- Migratsiya `2026_10_20_000001` faqat yangi bo'sh ustunlar qo'shadi: `users.hired_at`, `branches.usluga_from/usluga_rates`, `groups.usluga_tier/usluga_student_amount/usluga_bonus_amount`. Mavjud ma'lumot o'chmaydi. Testlar: `V13UslugaTest`.

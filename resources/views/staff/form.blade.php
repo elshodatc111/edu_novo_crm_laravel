@@ -42,6 +42,7 @@
             <x-input name="phone" phone label="Telefon" :value="$staff->phone" required hint="Asosiy telefon. Bir filialda bir lavozimda takrorlanmaydi." />
             <x-input name="email" type="email" label="Email" :value="$staff->email" />
             <x-input name="birthday" type="date" label="Tug'ilgan sana" :value="$staff->birthday?->format('Y-m-d')" />
+            <x-input name="hired_at" type="date" label="Ishga olingan sana" :value="$staff->hired_at?->format('Y-m-d')" hint="O'qituvchi uchun: «Usluga» (staj ustamasi) shu sanadan hisoblanadi." />
             <x-input name="address" label="Manzil" :value="$staff->address" class="sm:col-span-2" />
 
             <x-input name="password" type="password" label="Parol" :required="! $staff->exists" autocomplete="new-password"

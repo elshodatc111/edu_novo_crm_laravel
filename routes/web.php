@@ -241,6 +241,8 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::get('settings/contract', [ContractSettingsController::class, 'edit'])->name('contract-settings.edit');
         Route::put('settings/contract', [ContractSettingsController::class, 'update'])->name('contract-settings.update');
         Route::put('settings/contract/reset', [ContractSettingsController::class, 'reset'])->name('contract-settings.reset');
+        Route::get('settings/usluga', [\App\Http\Controllers\UslugaSettingsController::class, 'edit'])->name('usluga-settings.edit');
+        Route::put('settings/usluga', [\App\Http\Controllers\UslugaSettingsController::class, 'update'])->name('usluga-settings.update');
 
         Route::prefix('settings/{catalog}')->whereIn('catalog', ['courses', 'rooms', 'lesson-times', 'price-plans', 'campaigns', 'books', 'lead-sources', 'expense-categories'])->group(function () {
             Route::get('/', [CatalogController::class, 'index'])->name('catalog.index');

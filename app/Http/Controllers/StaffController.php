@@ -122,6 +122,7 @@ class StaffController extends Controller
         }
 
         $oldRole = $user->role;
+        $oldHired = $user->hired_at?->toDateString();
 
         DB::transaction(function () use ($user, $data, $roleChanged, $newRole, $permissions, $request) {
             $user->update($data);
@@ -157,6 +158,11 @@ class StaffController extends Controller
         // Bloklangan foydalanuvchining barcha mobil tokenlari bekor qilinadi
         if (! $user->isActive()) {
             $user->tokens()->delete();
+        }
+
+        $newHired = $user->fresh()->hired_at?->toDateString();
+        if ($newHired !== $oldHired) {
+            AuditLog::record('staff.hired_at_changed', $user, "Ishga olingan sana o'zgartirildi: {$user->name} (".($oldHired ?? '—').' → '.($newHired ?? '—').')', ['hired_at' => $oldHired], ['hired_at' => $newHired]);
         }
 
         AuditLog::record('staff.updated', $user, "Hodim ma'lumotlari yangilandi: {$user->name}");

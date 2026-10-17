@@ -24,7 +24,7 @@ class User extends Authenticatable
         'branch_id', 'role', 'name', 'username', 'email', 'phone', 'password',
         'birthday', 'address', 'status', 'last_login_at',
         'phone2', 'about', 'balance', 'lead_source_id', 'archived_at', 'photo_path',
-        'created_by', 'registered_via',
+        'created_by', 'registered_via', 'hired_at',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -41,6 +41,7 @@ class User extends Authenticatable
             'status' => UserStatus::class,
             'password' => 'hashed',
             'birthday' => 'date:Y-m-d',
+            'hired_at' => 'date:Y-m-d',
             'last_login_at' => 'datetime',
             'archived_at' => 'datetime',
             'password_changed_at' => 'datetime',

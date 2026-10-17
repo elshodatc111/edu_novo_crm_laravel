@@ -12,6 +12,8 @@ class StripMoneySpaces
     private const FIELDS = [
         'cash', 'card', 'amount', 'special_amount', 'bonus', 'early_discount', 'max_discount', 'fine',
         'teacher_rate', 'teacher_bonus_rate', 'balance',
+        'usluga_student_1', 'usluga_student_2', 'usluga_student_3', 'usluga_student_4',
+        'usluga_bonus_1', 'usluga_bonus_2', 'usluga_bonus_3', 'usluga_bonus_4',
     ];
 
     public function handle(Request $request, Closure $next): Response

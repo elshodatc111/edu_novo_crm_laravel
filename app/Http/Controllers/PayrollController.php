@@ -22,7 +22,7 @@ use Illuminate\Validation\ValidationException;
 /** O'qituvchi va hodimlarning ish haqi. */
 class PayrollController extends Controller
 {
-    public function __construct(private PayrollService $payroll) {}
+    public function __construct(private PayrollService $payroll, private \App\Services\UslugaService $usluga) {}
 
     public function index(Request $request)
     {
@@ -61,6 +61,7 @@ class PayrollController extends Controller
             'act' => $act,
             'person' => $user,
             'isTeacher' => $isTeacher,
+            'tenure' => $isTeacher ? $this->usluga->tenureInfo($user) : null,
             'accruals' => $isTeacher ? $this->payroll->teacherAccruals($user) : [],
             'payouts' => Payout::with(['group', 'creator'])->where('recipient_id', $user->id)->orderByDesc('id')->limit(50)->get(),
             'canPay' => request()->user()->can($isTeacher ? 'teachers.pay' : 'staff.pay'),

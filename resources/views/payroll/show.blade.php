@@ -7,24 +7,51 @@
     </x-page-header>
 
     @if ($isTeacher)
+        @php
+            $fmU = fn ($n) => \App\Support\Format::money($n, false);
+            $missingHire = collect($accruals)->contains(fn ($a) => $a['usluga']['state'] === \App\Services\UslugaService::STATE_NO_HIRE_DATE);
+        @endphp
+        <div class="mb-4 rounded-xl border border-ink-200 bg-white p-4 text-sm dark:border-ink-700 dark:bg-ink-900">
+            <span class="text-ink-500">Ishga olingan sana:</span>
+            <b>{{ $tenure['hired_at']?->format('d.m.Y') ?? 'kiritilmagan' }}</b>
+            @if ($tenure['months'] !== null)
+                · <span class="text-ink-500">staji:</span> <b>{{ intdiv($tenure['months'], 12) }} yil {{ $tenure['months'] % 12 }} oy</b>
+                · <span class="text-ink-500">hozirgi usluga pog'onasi:</span> <b>{{ $tenure['tier_label'] }}</b>
+            @endif
+        </div>
+        @if ($missingHire)
+            <div class="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">Bu o'qituvchining ishga olingan sanasi kiritilmagan, shuning uchun usluga hisoblanmayapti. Hodimni tahrirlash sahifasida «Ishga olingan sana»ni kiriting.</div>
+        @endif
         <div class="card overflow-hidden">
             <h2 class="px-5 pt-5 text-lg font-semibold text-ink-900 dark:text-white sm:px-6">Guruhlar bo'yicha hisob</h2>
-            <p class="px-5 text-sm text-ink-500 sm:px-6">Hisoblangan = o'quvchilar × stavka + bonusli o'quvchilar × bonus. «Davomad bo'yicha» — o'tkazilgan darslarga mutanosib.</p>
+            <p class="px-5 text-sm text-ink-500 sm:px-6">Hisoblangan = o'quvchilar × stavka + bonusli o'quvchilar × bonus. Usluga (o'quvchi) = o'quvchilar × o'quvchi usluga; usluga (bonus) = bonusli o'quvchilar × bonus usluga. Jami = hisoblangan + usluga. «Davomad bo'yicha» — o'tkazilgan darslarga mutanosib (usluga bilan birga).</p>
             <div class="table-wrap mt-3">
                 <table class="table">
-                    <thead><tr><th>Guruh</th><th>O'quvchi</th><th>Bonusli</th><th>Darslar</th><th class="text-right">Hisoblangan</th><th class="text-right">Davomad bo'yicha</th><th class="text-right">To'langan</th><th class="text-right">Qoldiq</th></tr></thead>
+                    <thead><tr><th>Guruh</th><th>O'quvchi</th><th>Bonusli</th><th>Darslar</th><th class="text-right">Hisoblangan</th><th class="text-right">Usluga (o'quvchi)</th><th class="text-right">Usluga (bonus)</th><th class="text-right">Jami</th><th class="text-right">Davomad bo'yicha</th><th class="text-right">To'langan</th><th class="text-right">Qoldiq</th></tr></thead>
                     <tbody>
                     @forelse ($accruals as $a)
+                        @php $u = $a['usluga']; $ok = $u['state'] === \App\Services\UslugaService::STATE_OK; @endphp
                         <tr>
                             <td><a href="{{ route('groups.show', $a['group']) }}" class="font-medium hover:text-brand-600">{{ $a['group']->name }}</a><div class="text-xs text-ink-400">{{ $a['group']->status_label }}</div></td>
                             <td>{{ $a['students'] }}</td><td>{{ $a['bonus'] }}</td><td>{{ $a['held'] }} / {{ $a['group']->lesson_count }}</td>
-                            <td class="text-right">{{ \App\Support\Format::money($a['accrued'], false) }}</td>
-                            <td class="text-right">{{ \App\Support\Format::money($a['accrued_by_attendance'], false) }}</td>
-                            <td class="text-right">{{ \App\Support\Format::money($a['paid'], false) }}</td>
-                            <td class="text-right font-semibold {{ $a['remaining'] > 0 ? 'text-brand-600' : 'text-emerald-600' }}">{{ \App\Support\Format::money($a['remaining'], false) }}</td>
+                            <td class="text-right">{{ $fmU($a['accrued']) }}</td>
+                            @if ($ok)
+                                <td class="text-right whitespace-nowrap">{{ $a['students'] }} × {{ $fmU($u['student']) }} = <b>{{ $fmU($a['usluga_students']) }}</b><div class="text-xs text-ink-400">{{ $u['tier_label'] }}</div></td>
+                                <td class="text-right whitespace-nowrap">{{ $a['bonus'] }} × {{ $fmU($u['bonus']) }} = <b>{{ $fmU($a['usluga_bonus']) }}</b></td>
+                            @else
+                                <td colspan="2" class="text-right text-xs text-ink-400">
+                                    @if ($u['state'] === \App\Services\UslugaService::STATE_NO_HIRE_DATE)<span class="text-amber-600">Ishga olingan sana yo'q</span>
+                                    @elseif ($u['state'] === \App\Services\UslugaService::STATE_NO_RATES)<span class="text-amber-600">Usluga summalari sozlanmagan</span>
+                                    @else —@endif
+                                </td>
+                            @endif
+                            <td class="text-right font-medium">{{ $fmU($a['accrued_total']) }}</td>
+                            <td class="text-right">{{ $fmU($a['accrued_by_attendance']) }}</td>
+                            <td class="text-right">{{ $fmU($a['paid']) }}</td>
+                            <td class="text-right font-semibold {{ $a['remaining'] > 0 ? 'text-brand-600' : 'text-emerald-600' }}">{{ $fmU($a['remaining']) }}</td>
                         </tr>
                     @empty
-                        <tr><td colspan="8" class="py-8 text-center text-ink-500">So'nggi 31 kunda guruh yo'q.</td></tr>
+                        <tr><td colspan="11" class="py-8 text-center text-ink-500">So'nggi 31 kunda guruh yo'q.</td></tr>
                     @endforelse
                     </tbody>
                 </table>

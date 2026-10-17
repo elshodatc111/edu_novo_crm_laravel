@@ -182,6 +182,7 @@ class MeController extends Controller
             'groups' => array_map(fn ($a) => [
                 'group_id' => $a['group']->id, 'group' => $a['group']->name, 'students' => $a['students'], 'bonus_students' => $a['bonus'],
                 'lessons_held' => $a['held'], 'lessons_total' => $a['group']->lesson_count, 'accrued' => $a['accrued_by_attendance'], 'paid' => $a['paid'], 'remaining' => $a['remaining'],
+                'usluga_students' => $a['usluga_students'], 'usluga_student_amount' => $a['usluga']['student'], 'usluga_bonus' => $a['usluga_bonus'], 'usluga_bonus_amount' => $a['usluga']['bonus'], 'usluga_tier' => $a['usluga']['tier_label'], 'accrued_total' => $a['accrued_total'],
             ], $payroll->teacherAccruals($user)),
             'payouts' => \App\Models\Payout::where('recipient_id', $user->id)->latest('id')->limit(50)->get()
                 ->map(fn ($p) => ['id' => $p->id, 'amount' => $p->amount, 'method' => $p->method->label(), 'description' => $p->description, 'created_at' => $p->created_at->toIso8601String()]),

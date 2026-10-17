@@ -48,6 +48,7 @@ class StaffRequest extends FormRequest
                 $target?->id,
             )],
             'birthday' => ['nullable', 'date', 'before:today'],
+            'hired_at' => ['nullable', 'date', 'before_or_equal:today'],
             'address' => ['nullable', 'string', 'max:255'],
             'status' => ['required', Rule::enum(UserStatus::class)],
             'password' => [$creating ? 'required' : 'nullable', 'confirmed', Password::min(8)],

@@ -222,6 +222,7 @@ Batafsil ro'yxat, ma'lumotlar bazasi o'zgarishlari va cheklovlar: `CHANGELOG.md`
 - **Maxsus chegirma (sAdmin):** o'quvchi balansiga guruhsiz bonus (bitta chegirma ≤ 1 000 000 so'm), sabab majburiy, parol bilan tasdiqlanadi; kassadan pul chiqmaydi, SMS yuborilmaydi, statistikada «Chegirmalar»ga kiradi. Faqat sAdmin — ruxsat sifatida berib bo'lmaydi.
 - **Guruhni o'chirish (arxivlash):** faqat boshlanmagan, o'quvchisiz guruh; admin va sAdmin (`groups.delete`), sabab va parol bilan; migratsiya `2026_10_10_000001`.
 - **v13.4:** ro'yxatlarda № raqamlash va qatorni bosib ochish, guruhda «O'quvchilar» tabi birinchi, davomadda balans, o'quvchini kim ro'yxatga olgani (`users.created_by`, migratsiya `2026_10_17_000001`) va hodim faoliyatida to'lov qilgan yangi o'quvchilar.
+- **v13.5:** o'qituvchi «Usluga» (staj ustamasi): Sozlamalar → Usluga (sAdmin), hodimda «Ishga olingan sana», ish haqida usluga ustunlari. Migratsiya `2026_10_20_000001`.
 
 ## 3. Birinchi qadamlar
 
